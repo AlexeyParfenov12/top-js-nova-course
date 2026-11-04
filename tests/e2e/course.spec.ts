@@ -3,6 +3,17 @@ import JSZip from "jszip";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+test('Адаптивность семи страниц NOVA и длинного заголовка', async ({page},testInfo)=>{
+ for(const width of [1920,1440,1366,900,768,390]){
+  await page.setViewportSize({width,height:900});
+  for(const route of ['index','about','tracks','program','speakers','tickets','contacts']){
+   await page.goto(`nova/${route}.html`);
+   await expect(page.locator('h1')).toBeVisible();
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth+1),`${route}: ${width}`).toBe(true);
+   if(route==='index'&&width===1440)await page.screenshot({path:testInfo.outputPath('nova-home.png'),fullPage:true});
+  }
+ }
+});
 test("Все решения, ошибочные черновики, упражнения и ограничения времени", async ({
   page,
 }) => {
