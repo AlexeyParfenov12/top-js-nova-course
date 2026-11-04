@@ -64,6 +64,10 @@ export function LessonRow({ id }: { id: number }) {
       <div>
         <strong>{l.title}</strong>
         <small>{l.feature}</small>
+        <span className="lesson-row-meta">
+          {l.sections.length} тем · {l.exercises.length} задач · {l.quiz.length}{" "}
+          вопроса
+        </span>
       </div>
       <span className="duration">90 мин</span>
       <ChevronRight size={17} />

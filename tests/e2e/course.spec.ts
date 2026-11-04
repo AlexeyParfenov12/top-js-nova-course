@@ -3,6 +3,105 @@ import JSZip from "jszip";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+test("Восемь разделов, шесть задач, контроль и сохранение новых ответов", async ({
+  page,
+}) => {
+  await page.goto("#/lesson/1");
+  await expect(page.locator(".reading-nav button")).toHaveCount(8);
+  await page
+    .locator(".lesson-tabs")
+    .getByRole("button", { name: /Контроль/ })
+    .click();
+  const first = page.locator(".knowledge-question").first();
+  await first.getByLabel("Пустую строку", { exact: true }).check();
+  await first.getByRole("button", { name: "Проверить ответ" }).click();
+  await expect(first.getByText("Пока неверно.", { exact: true })).toBeVisible();
+  await first.getByLabel("null", { exact: true }).check();
+  await first.getByRole("button", { name: "Проверить ответ" }).click();
+  await expect(first.getByText("Верно.", { exact: true })).toBeVisible();
+  await page.locator(".reflection input").first().check();
+  await page
+    .locator(".lesson-tabs")
+    .getByRole("button", { name: /Тренажёр/ })
+    .click();
+  await expect(page.locator(".exercise")).toHaveCount(6);
+  const last = page.locator(".exercise").last();
+  await last
+    .getByLabel("Код упражнения 6")
+    .fill(
+      "function connectButton(){const button=document.querySelector('#hello');button.addEventListener('click',()=>button.textContent='Я иду на NOVA');}",
+    );
+  await last.getByRole("button", { name: "Проверить", exact: true }).click();
+  await expect(last.getByText("Верно! Все сценарии пройдены.")).toBeVisible();
+  await expect(page.getByText("Сохранено на устройстве").first()).toBeVisible();
+  await page.reload();
+  await page
+    .locator(".lesson-tabs")
+    .getByRole("button", { name: /Контроль/ })
+    .click();
+  await expect(
+    page
+      .locator(".knowledge-question")
+      .first()
+      .getByText("Верно.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".reflection input").first()).toBeChecked();
+  await page
+    .locator(".lesson-tabs")
+    .getByRole("button", { name: /Тренажёр/ })
+    .click();
+  await expect(
+    page.locator(".exercise").last().getByText("Выполнено", { exact: true }),
+  ).toBeVisible();
+});
+test("Чтение и задания адаптируются к компьютеру, планшету и телефону", async ({
+  page,
+}, testInfo) => {
+  for (const width of [1920, 1440, 1366, 900, 768, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("#/lesson/2");
+    await expect(
+      page.getByRole("heading", {
+        name: "Переменные, типы и вычисления",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await page
+      .locator(".lesson-tabs")
+      .getByRole("button", { name: /Теория/ })
+      .click();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+      ),
+      `Теория ${width}`,
+    ).toBe(true);
+    await page.screenshot({
+      path: testInfo.outputPath(`lesson-${width}.png`),
+      fullPage: false,
+    });
+    await page
+      .locator(".lesson-tabs")
+      .getByRole("button", { name: /Тренажёр/ })
+      .click();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+      ),
+      `Тренажёр ${width}`,
+    ).toBe(true);
+    await page
+      .locator(".lesson-tabs")
+      .getByRole("button", { name: /Контроль/ })
+      .click();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+      ),
+      `Контроль ${width}`,
+    ).toBe(true);
+  }
+});
 test("Редактор открывает готовый NOVA отдельным работающим сайтом", async ({
   page,
 }) => {
@@ -241,7 +340,10 @@ test("Теория, тренажёр, перенос JSON и отказ от п�
   await page.goto("#/lesson/1");
   await page.getByRole("button", { name: "Выполнить строку" }).click();
   await expect(page.getByText('title → "NOVA"', { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: /Тренажёр/ }).click();
+  await page
+    .locator(".lesson-tabs")
+    .getByRole("button", { name: /Тренажёр/ })
+    .click();
   await page
     .getByLabel("Код упражнения 1")
     .fill("function festivalName(){return 'NOVA';}");
@@ -276,7 +378,10 @@ test("Теория, тренажёр, перенос JSON и отказ от п�
   ).toBeVisible();
   await page.reload();
   await page.goto("#/lesson/1");
-  await page.getByRole("button", { name: /Тренажёр/ }).click();
+  await page
+    .locator(".lesson-tabs")
+    .getByRole("button", { name: /Тренажёр/ })
+    .click();
   await expect(page.getByText("Выполнено", { exact: true })).toBeVisible();
 });
 test("Адаптивные экраны без горизонтального переполнения", async ({

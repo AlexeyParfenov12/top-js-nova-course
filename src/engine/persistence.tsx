@@ -88,7 +88,7 @@ export function validateProgress(value: unknown): Progress {
     codes: stringMap(value.codes, 9, codeKey),
     files: stringMap(value.files, 18, fileKey),
     exercises: boolMap(value.exercises),
-    exerciseDrafts: stringMap(value.exerciseDrafts, 18, /^[1-9]-[01]$/),
+    exerciseDrafts: stringMap(value.exerciseDrafts, 54, /^[1-9]-[0-5]$/),
     sections: boolMap(value.sections),
   };
   if (!record(value.results) || Object.keys(value.results).length > 9)

@@ -1,4 +1,4 @@
-import { days, lessons } from "../content/course";
+import { days, lessons, courseTotals } from "../content/course";
 import { LessonRow, PageHeading, ProgressBar } from "../components/common";
 import { useProgress } from "../engine/persistence";
 export function Curriculum() {
@@ -10,6 +10,20 @@ export function Curriculum() {
         title="Программа курса"
         description="Каждое занятие: теория → тренажёр → практика в NOVA → проверка → твой проект."
       />
+      <div className="curriculum-facts">
+        <span>
+          <b>{courseTotals.sections}</b> раздела теории
+        </span>
+        <span>
+          <b>{courseTotals.exercises}</b> задачи с кодом
+        </span>
+        <span>
+          <b>{courseTotals.questions}</b> контрольных вопросов
+        </span>
+        <span>
+          <b>9</b> этапов NOVA
+        </span>
+      </div>
       <div className="curriculum-list">
         {days.map((day, i) => (
           <section className="curriculum-day" key={day}>

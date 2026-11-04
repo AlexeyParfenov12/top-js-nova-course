@@ -11,6 +11,27 @@ export interface Section {
   text: string;
   code: string;
   note: string;
+  walkthrough?: string[];
+  experiment?: string;
+  prediction?: { prompt: string; answer: string };
+}
+export interface KnowledgeQuestion {
+  prompt: string;
+  options: string[];
+  answer: number;
+  explanation: string;
+}
+export interface SessionGuide {
+  warmup: string;
+  prerequisite: string;
+  milestones: string[];
+  selfCheck: string[];
+  extension: string;
+  reflection: string[];
+}
+export interface FullLesson extends Lesson {
+  quiz: KnowledgeQuestion[];
+  guide: SessionGuide;
 }
 export interface Exercise {
   prompt: string;

@@ -1,10 +1,11 @@
 import type { Lesson } from "./types";
+import { enrichLesson } from "./depth";
 export const days = [
   "Основы JavaScript",
   "DOM и работа с данными",
   "Завершение сайта",
 ];
-export const lessons: Lesson[] = [
+const foundationLessons: Lesson[] = [
   {
     id: 1,
     day: 1,
@@ -740,3 +741,9 @@ export const lessons: Lesson[] = [
       "Ты завершил семь страниц NOVA. Проверь проект целиком, скачай архив и сохрани JSON прогресса перед сменой устройства.",
   },
 ];
+export const lessons = foundationLessons.map(enrichLesson);
+export const courseTotals = {
+  sections: lessons.reduce((n, l) => n + l.sections.length, 0),
+  exercises: lessons.reduce((n, l) => n + l.exercises.length, 0),
+  questions: lessons.reduce((n, l) => n + l.quiz.length, 0),
+};

@@ -15,13 +15,42 @@ page.on("response", (response) => {
 try {
   const response = await page.goto(base);
   assert.equal(response.status(), 200);
+  await page.locator(".course-welcome").waitFor();
+  assert.match(await page.locator(".course-numbers").innerText(), /72/);
+  assert.match(await page.locator(".course-numbers").innerText(), /54/);
+  assert.match(await page.locator(".course-numbers").innerText(), /36/);
+  if (process.argv[4])
+    await page.screenshot({ path: process.argv[4], fullPage: false });
   await page
     .getByRole("link", { name: "Начать обучение", exact: true })
     .click();
   await page
     .getByRole("heading", { name: "Первые строки JavaScript", exact: true })
     .waitFor();
-  await page.getByRole("link", { name: "Практика NOVA", exact: true }).click();
+  await page.locator(".reading-nav button").last().waitFor();
+  assert.equal(await page.locator(".reading-nav button").count(), 8);
+  if (process.argv[5])
+    await page.screenshot({ path: process.argv[5], fullPage: false });
+  await page
+    .locator(".lesson-tabs")
+    .getByRole("button", { name: /Контроль/ })
+    .click();
+  await page.locator(".knowledge-question").first().waitFor();
+  assert.equal(await page.locator(".knowledge-question").count(), 4);
+  const first = page.locator(".knowledge-question").first();
+  await first.getByLabel("null", { exact: true }).check();
+  await first.getByRole("button", { name: "Проверить ответ" }).click();
+  await first.getByText("Верно.", { exact: true }).waitFor();
+  await page
+    .locator(".lesson-tabs")
+    .getByRole("button", { name: /Тренажёр/ })
+    .click();
+  await page.locator(".exercise").first().waitFor();
+  assert.equal(await page.locator(".exercise").count(), 6);
+  await page
+    .locator(".lesson-tabs")
+    .getByRole("link", { name: "Практика NOVA", exact: true })
+    .click();
   await page.locator(".monaco-editor").first().waitFor({ timeout: 30000 });
   await page.reload();
   await page.locator(".monaco-editor").first().waitFor({ timeout: 30000 });
@@ -63,15 +92,23 @@ try {
   await nova.locator("#program-track").selectOption("Robotics");
   assert.equal(await nova.locator(".event-row").count(), 0);
   assert.equal(await nova.locator("#program-empty").isVisible(), true);
-  await nova.goto(new URL('nova/index.html',base).href);
-  assert.ok(await nova.locator('.art img').evaluate(image=>image.complete&&image.naturalWidth>0));
-  if(process.argv[3])await nova.screenshot({path:process.argv[3],fullPage:false});
+  await nova.goto(new URL("nova/index.html", base).href);
+  assert.ok(
+    await nova
+      .locator(".art img")
+      .evaluate((image) => image.complete && image.naturalWidth > 0),
+  );
+  if (process.argv[3])
+    await nova.screenshot({ path: process.argv[3], fullPage: false });
   assert.deepEqual(errors, []);
   assert.deepEqual(failures, []);
   console.log(
     JSON.stringify({
       url: base,
       platform: true,
+      courseContent: { sections: 72, exercises: 54, questions: 36 },
+      learningUI: true,
+      quiz: true,
       routeReload: true,
       monaco: true,
       grading: true,
