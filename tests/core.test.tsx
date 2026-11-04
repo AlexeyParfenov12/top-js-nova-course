@@ -23,10 +23,11 @@ describe("Курс и экспортируемый проект", () => {
       7,
     );
     for (const html of Object.keys(files).filter((p) => p.endsWith(".html"))) {
+      expect(files[html].length).toBeLessThan(100_000);
       const doc = new DOMParser().parseFromString(files[html], "text/html");
       expect(doc.querySelector("h1")).toBeTruthy();
       for (const node of doc.querySelectorAll(
-        'script[src],link[href],a[href$=".html"]',
+        'script[src],link[href],a[href$=".html"],img[src]',
       )) {
         const path =
           node.getAttribute("src") || node.getAttribute("href") || "";

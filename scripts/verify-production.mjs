@@ -63,6 +63,9 @@ try {
   await nova.locator("#program-track").selectOption("Robotics");
   assert.equal(await nova.locator(".event-row").count(), 0);
   assert.equal(await nova.locator("#program-empty").isVisible(), true);
+  await nova.goto(new URL('nova/index.html',base).href);
+  assert.ok(await nova.locator('.art img').evaluate(image=>image.complete&&image.naturalWidth>0));
+  if(process.argv[3])await nova.screenshot({path:process.argv[3],fullPage:false});
   assert.deepEqual(errors, []);
   assert.deepEqual(failures, []);
   console.log(

@@ -280,6 +280,14 @@ export function Workspace({ free = false }: { free?: boolean }) {
       </div>
       <div className="workspace-toolbar">
         <div>
+          <a
+            className="button nova-site-button"
+            href={import.meta.env.BASE_URL + "nova/index.html"}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Открыть сайт NOVA ↗
+          </a>
           <button
             title="Условие задания"
             onClick={() => setShowInstructions(!showInstructions)}

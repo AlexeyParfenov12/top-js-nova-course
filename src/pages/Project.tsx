@@ -74,7 +74,7 @@ export function Project() {
             target="_blank"
             rel="noreferrer"
           >
-            Эталон отдельно ↗
+            Открыть готовый NOVA ↗
           </a>
           <Link className="button" to="/editor">
             <Code2 size={16} />

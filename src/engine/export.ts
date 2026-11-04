@@ -14,11 +14,14 @@ export async function createProjectZip(
   files: Record<string, string> = {},
 ) {
   const zip = new JSZip();
-  for (const [path, content] of Object.entries(projectFiles(codes, files)))
-    zip.file(path, content);
+  for (const [path, content] of Object.entries(projectFiles(codes, files))) {
+    if (path.startsWith("assets/") && content.startsWith("data:image/"))
+      zip.file(path, content.slice(content.indexOf(",") + 1), { base64: true });
+    else zip.file(path, content);
+  }
   zip.file(
     "README.txt",
-    "NOVA — учебный сайт технологического фестиваля.\nОткройте index.html или разместите все файлы на статическом хостинге.\nТарифы, участники и даты демонстрационные. Формы не отправляют данные.\nГрафика: оригинальные SVG и CSS. Сайт не требует платформы TOP и внешних сервисов.",
+    "NOVA — учебный сайт технологического фестиваля.\nОткройте index.html или разместите все файлы на статическом хостинге.\nТарифы, участники и даты демонстрационные. Формы не отправляют данные.\nГрафика: оригинальные SVG/CSS и изображение, созданное ImageGen. Сайт не требует платформы TOP и внешних сервисов.",
   );
   return zip.generateAsync({ type: "blob" });
 }

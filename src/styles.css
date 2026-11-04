@@ -2364,3 +2364,48 @@ textarea:focus-visible {
   font-size: 14px;
   line-height: 1.8;
 }
+/* Direct access to the independent NOVA website. */
+.app-header nav a.nova-external-link {
+  color: #d6b5f3;
+  border: 1px solid #68457e;
+  background: #44304f;
+  font-size: 11px;
+  padding: 10px 13px;
+  gap: 4px;
+  white-space: nowrap;
+}
+.workspace-toolbar .nova-site-button {
+  font-size: 11px;
+  padding: 9px 12px;
+  background: #54326c;
+  border-color: #8659a8;
+  white-space: nowrap;
+}
+.workspace-toolbar .nova-site-button:hover {
+  background: #73468f;
+}
+@media (max-width: 1000px) {
+  .app-header nav a.nova-external-link {
+    font-size: 10px;
+    padding: 9px;
+  }
+  .workspace-toolbar .nova-site-button {
+    font-size: 9px;
+    padding: 8px;
+  }
+}
+@media (max-width: 700px) {
+  .app-header {
+    gap: 12px;
+  }
+  .app-header nav {
+    gap: 0;
+  }
+  .app-header nav a {
+    padding: 8px;
+  }
+  .app-header nav a.nova-external-link {
+    padding: 8px;
+    font-size: 9px;
+  }
+}

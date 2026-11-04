@@ -3,16 +3,65 @@ import JSZip from "jszip";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-test('Адаптивность семи страниц NOVA и длинного заголовка', async ({page},testInfo)=>{
- for(const width of [1920,1440,1366,900,768,390]){
-  await page.setViewportSize({width,height:900});
-  for(const route of ['index','about','tracks','program','speakers','tickets','contacts']){
-   await page.goto(`nova/${route}.html`);
-   await expect(page.locator('h1')).toBeVisible();
-   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth+1),`${route}: ${width}`).toBe(true);
-   if(route==='index'&&width===1440)await page.screenshot({path:testInfo.outputPath('nova-home.png'),fullPage:true});
+test("Редактор открывает готовый NOVA отдельным работающим сайтом", async ({
+  page,
+}) => {
+  await page.goto("#/workspace/1");
+  const popupEvent = page.waitForEvent("popup");
+  await page
+    .getByRole("link", { name: "Открыть сайт NOVA ↗", exact: true })
+    .click();
+  const nova = await popupEvent;
+  await nova.waitForLoadState();
+  expect(nova.url()).toContain("/nova/index.html");
+  await expect(nova.locator(".app-header")).toHaveCount(0);
+  await expect(nova.locator(".art img")).toBeVisible();
+  expect(
+    await nova
+      .locator(".art img")
+      .evaluate(
+        (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
+      ),
+  ).toBe(true);
+  await nova.getByRole("button", { name: "Я с вами!", exact: true }).click();
+  await expect(nova.locator("#greeting")).toHaveText("Увидимся на NOVA!");
+  await nova
+    .getByRole("navigation")
+    .getByRole("link", { name: "Билеты", exact: true })
+    .click();
+  await nova.locator('[data-price="12000"]').click();
+  await nova.locator("#quantity").fill("2");
+  await expect(nova.locator("#ticket-total")).toHaveText("24000 ₽");
+});
+test("Адаптивность семи страниц NOVA и длинного заголовка", async ({
+  page,
+}, testInfo) => {
+  for (const width of [1920, 1440, 1366, 900, 768, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const route of [
+      "index",
+      "about",
+      "tracks",
+      "program",
+      "speakers",
+      "tickets",
+      "contacts",
+    ]) {
+      await page.goto(`nova/${route}.html`);
+      await expect(page.locator("h1")).toBeVisible();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+        ),
+        `${route}: ${width}`,
+      ).toBe(true);
+      if (route === "index" && width === 1440)
+        await page.screenshot({
+          path: testInfo.outputPath("nova-home.png"),
+          fullPage: true,
+        });
+    }
   }
- }
 });
 test("Все решения, ошибочные черновики, упражнения и ограничения времени", async ({
   page,
@@ -208,24 +257,20 @@ test("Теория, тренажёр, перенос JSON и отказ от п�
   const raw = await fs.readFile((await file.path())!);
   const backup = JSON.parse(raw.toString());
   expect(backup.exercises["1-0"]).toBe(true);
-  await page
-    .getByLabel("Импорт JSON прогресса")
-    .setInputFiles({
-      name: "bad.json",
-      mimeType: "application/json",
-      buffer: Buffer.from('{"version":99}'),
-    });
+  await page.getByLabel("Импорт JSON прогресса").setInputFiles({
+    name: "bad.json",
+    mimeType: "application/json",
+    buffer: Buffer.from('{"version":99}'),
+  });
   await expect(page.getByText(/Импорт отклонён/)).toBeVisible();
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Сбросить весь курс" }).click();
   page.once("dialog", (dialog) => dialog.accept());
-  await page
-    .getByLabel("Импорт JSON прогресса")
-    .setInputFiles({
-      name: "progress.json",
-      mimeType: "application/json",
-      buffer: raw,
-    });
+  await page.getByLabel("Импорт JSON прогресса").setInputFiles({
+    name: "progress.json",
+    mimeType: "application/json",
+    buffer: raw,
+  });
   await expect(
     page.getByText("Прогресс импортирован.", { exact: true }),
   ).toBeVisible();

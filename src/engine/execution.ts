@@ -48,6 +48,11 @@ export function buildPreview(
       .filter((a) => /^on/i.test(a.name))
       .forEach((a) => node.removeAttribute(a.name)),
   );
+  // Embed bundled assets as data URLs in the opaque preview; no network permission is needed.
+  doc.querySelectorAll("img[src]").forEach((image) => {
+    const asset = files[image.getAttribute("src") || ""];
+    if (asset?.startsWith("data:image/")) image.setAttribute("src", asset);
+  });
   const bridge = `(()=>{const send=(type,payload)=>parent.postMessage({channel:'top-nova',token:${JSON.stringify(token)},type,payload},'*');
  const fmt=x=>{try{return typeof x==='string'?x:JSON.stringify(x)}catch{return String(x)}};
  ['log','warn','info'].forEach(type=>console[type]=(...args)=>send('log',args.map(fmt).join(' ').slice(0,2000)));

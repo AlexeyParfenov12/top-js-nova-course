@@ -53,6 +53,15 @@ function Layout() {
             <Code2 size={16} />
             <span>Мой проект</span>
           </NavLink>
+          <a
+            href={import.meta.env.BASE_URL + "nova/index.html"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="nova-external-link"
+            aria-label="Открыть сайт NOVA в отдельной вкладке"
+          >
+            <span>Сайт</span> NOVA ↗
+          </a>
         </nav>
         <span className="save-status">
           <span className="save-dot" />
