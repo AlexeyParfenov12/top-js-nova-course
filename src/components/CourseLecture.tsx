@@ -155,7 +155,7 @@ export function CourseLecture({
 function ConceptNotes({ guide }: { guide: ConceptGuide }) {
   return (
     <div className="concept-notes">
-      <h3>Как читать пример</h3>
+      <h3>Разбор кода</h3>
       <ol>
         {guide.steps.map((step) => (
           <li key={step}>

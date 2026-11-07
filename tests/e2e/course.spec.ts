@@ -31,7 +31,7 @@ test("Простой маршрут от лекции через две зада
   ).toBeVisible();
   await expect(htmlExample.getByText(/button#hello/)).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Как читать пример" }),
+    page.getByRole("heading", { name: "Разбор кода" }),
   ).toHaveCount(3);
   const question = page.locator(".concept-question").first();
   await question.locator("summary").click();
