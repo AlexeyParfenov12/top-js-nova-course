@@ -1,5 +1,5 @@
 import { BookOpen } from "lucide-react";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import type { Lecture } from "../content/lectures";
 import type { Lesson } from "../content/types";
 import {
@@ -7,6 +7,7 @@ import {
   type LineNote,
 } from "../content/assignmentWalkthroughs";
 import { assignmentGuides, lectureExamples } from "../content/lectureExamples";
+import { conceptGuides, type ConceptGuide } from "../content/conceptGuides";
 import { LectureFigure } from "./LectureFigure";
 import { SyntaxCode } from "./SyntaxCode";
 
@@ -22,6 +23,7 @@ export function CourseLecture({
   const examples = lectureExamples[lesson.id];
   const guide = assignmentGuides[lesson.id];
   const walkthrough = assignmentWalkthroughs[lesson.id];
+  const conceptNotes = conceptGuides[lesson.id];
   const chapters = [
     { id: "lecture-start", title: "Зачем это нужно" },
     ...lecture.concepts.map((concept, index) => ({
@@ -63,6 +65,14 @@ export function CourseLecture({
           {lecture.opening.map((text) => (
             <p key={text}>{text}</p>
           ))}
+          {lesson.id === 1 && (
+            <p>
+              Код будем писать прямо в браузере. В «Тренажёре» попробуем
+              короткие команды. В «Практике NOVA» нажмём «Запустить», чтобы
+              увидеть свой результат на сайте, и «Проверить решение», чтобы
+              узнать, всё ли сработало.
+            </p>
+          )}
           <p className="lecture-outcome">
             <strong>К концу лекции</strong> {lecture.outcome}
           </p>
@@ -78,6 +88,7 @@ export function CourseLecture({
             </Chapter>
             <p>{concept.paragraphs[0]}</p>
             <LectureFigure code={concept.code} example={examples[index]} />
+            <ConceptNotes guide={conceptNotes[index]} />
             {concept.paragraphs.slice(1).map((text) => (
               <p key={text}>{text}</p>
             ))}
@@ -137,6 +148,34 @@ export function CourseLecture({
           </p>
         </section>
       </article>
+    </div>
+  );
+}
+
+function ConceptNotes({ guide }: { guide: ConceptGuide }) {
+  return (
+    <div className="concept-notes">
+      <h3>Как читать пример</h3>
+      <ol>
+        {guide.steps.map((step) => (
+          <li key={step}>
+            {step.split("`").map((part, index) =>
+              index % 2 ? (
+                <code key={index}>{part}</code>
+              ) : (
+                <Fragment key={index}>{part}</Fragment>
+              ),
+            )}
+          </li>
+        ))}
+      </ol>
+      <details className="concept-question">
+        <summary>
+          <strong>Проверь себя</strong>
+          <span>{guide.question}</span>
+        </summary>
+        <p>{guide.answer}</p>
+      </details>
     </div>
   );
 }

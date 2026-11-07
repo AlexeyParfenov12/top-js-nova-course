@@ -123,6 +123,10 @@ export function buildPreview(
  const results=[];const q=s=>{const n=document.querySelector(s);if(!n)throw new Error('Не найден элемент '+s);return n;};
  const ok=(x,msg='Ожидаемое поведение не выполнено')=>{if(!x)throw new Error(msg);};
  const equal=(a,b)=>{if(!Object.is(a,b))throw new Error('Ожидалось: '+String(b)+'; получено: '+String(a));};
+ const plainDash=s=>typeof s==='string'?s.replace(/[\u2010-\u2015\u2212]/g,'-'):s;
+ const equalText=(actual,expected)=>{
+   if(!Object.is(plainDash(actual),plainDash(expected))) equal(actual,expected);
+ };
  const test=(name,fn)=>{try{fn();results.push({name,passed:true});}catch(e){results.push({name,passed:false,detail:String(e.message||e).slice(0,1000)});}};
  try{${tests}}catch(e){results.push({name:'Выполнение проверки',passed:false,detail:String(e.message||e)})}
  parent.postMessage({channel:'top-nova',token:${JSON.stringify(token)},type:'result',payload:results},'*');

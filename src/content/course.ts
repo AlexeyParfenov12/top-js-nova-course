@@ -41,7 +41,7 @@ export const lessons: Lesson[] = [
         hint: "Записывай новый textContent внутри функции, переданной в addEventListener.",
       },
     ],
-    task: "В index.html уже есть #hero-title, #hello и #greeting. Сделай заголовок «NOVA — будущее начинается здесь». При клике по #hello выведи в #greeting «Увидимся на NOVA!».",
+    task: "В index.html уже есть #hero-title, #hello и #greeting. Сделай заголовок «NOVA - будущее начинается здесь». При клике по #hello выведи в #greeting «Увидимся на NOVA!».",
     requirements: [
       "Измени textContent заголовка #hero-title.",
       "Зарегистрируй обработчик click у #hello.",
@@ -50,14 +50,14 @@ export const lessons: Lesson[] = [
     starter:
       "// 1. Найди #hero-title и измени его textContent\nconst title = document.querySelector('#hero-title');\ntitle.textContent = 'NOVA';\n\n// 2. Найди #hello и добавь обработчик click\n",
     solution:
-      "const title = document.querySelector('#hero-title');\nif (title) {\n  title.textContent = 'NOVA — будущее начинается здесь';\n  document.querySelector('#hello').addEventListener('click', () => {\n    document.querySelector('#greeting').textContent = 'Увидимся на NOVA!';\n  });\n}",
+      "const title = document.querySelector('#hero-title');\nif (title) {\n  title.textContent = 'NOVA - будущее начинается здесь';\n  document.querySelector('#hello').addEventListener('click', () => {\n    document.querySelector('#greeting').textContent = 'Увидимся на NOVA!';\n  });\n}",
     hints: [
       "Найди все три элемента с помощью document.querySelector.",
       "Изменяй .textContent. Обработчик регистрируется через addEventListener.",
       "button.addEventListener('click', () => { greeting.textContent = 'Увидимся на NOVA!'; });",
     ],
     tests:
-      "test('Заголовок изменён',()=>equal(q('#hero-title').textContent,'NOVA — будущее начинается здесь')); test('Приветствие ждёт клика',()=>equal(q('#greeting').textContent,'')); test('Кнопка отвечает на клик',()=>{q('#hello').click(); equal(q('#greeting').textContent,'Увидимся на NOVA!');});",
+      "test('Заголовок изменён',()=>equalText(q('#hero-title').textContent,'NOVA - будущее начинается здесь')); test('Приветствие ждёт клика',()=>equal(q('#greeting').textContent,'')); test('Кнопка отвечает на клик',()=>{q('#hello').click(); equal(q('#greeting').textContent,'Увидимся на NOVA!');});",
     summary:
       "Ты связал JavaScript с DOM: нашёл элементы, изменил текст и зарегистрировал первое событие.",
   },
@@ -422,7 +422,7 @@ export const lessons: Lesson[] = [
         hint: "В начале обработчика вызови event.preventDefault().",
       },
     ],
-    task: "Создай window.validateContact(name,email,message): верни «Введите имя», «Введите корректный email» или «Введите сообщение», проверяя именно в этом порядке. При успехе верни пустую строку. На submit #contact-form отменяй перезагрузку, проверяй поля и показывай результат в #form-status. Успех: «Данные проверены. Это учебная форма — сообщение не отправлено.».",
+    task: "Создай window.validateContact(name,email,message): верни «Введите имя», «Введите корректный email» или «Введите сообщение», проверяя именно в этом порядке. При успехе верни пустую строку. На submit #contact-form отменяй перезагрузку, проверяй поля и показывай результат в #form-status. Успех: «Данные проверены. Это учебная форма - сообщение не отправлено.».",
     requirements: [
       "Пробелы не считаются именем или сообщением.",
       "Email проверяется на минимальную структуру.",
@@ -431,14 +431,14 @@ export const lessons: Lesson[] = [
     starter:
       "window.validateContact = function(name, email, message) {\n  // Верни первую ошибку или пустую строку\n};\n// Обработчик submit\n",
     solution:
-      "window.validateContact = function(name, email, message) {\n  if (!name.trim()) return 'Введите имя';\n  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email.trim())) return 'Введите корректный email';\n  if (!message.trim()) return 'Введите сообщение';\n  return '';\n};\nconst form = document.querySelector('#contact-form');\nif (form) form.addEventListener('submit', event => {\n  event.preventDefault();\n  const error = window.validateContact(form.elements.namedItem('name').value, form.elements.namedItem('email').value, form.elements.namedItem('message').value);\n  document.querySelector('#form-status').textContent = error || 'Данные проверены. Это учебная форма — сообщение не отправлено.';\n});",
+      "window.validateContact = function(name, email, message) {\n  if (!name.trim()) return 'Введите имя';\n  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email.trim())) return 'Введите корректный email';\n  if (!message.trim()) return 'Введите сообщение';\n  return '';\n};\nconst form = document.querySelector('#contact-form');\nif (form) form.addEventListener('submit', event => {\n  event.preventDefault();\n  const error = window.validateContact(form.elements.namedItem('name').value, form.elements.namedItem('email').value, form.elements.namedItem('message').value);\n  document.querySelector('#form-status').textContent = error || 'Данные проверены. Это учебная форма - сообщение не отправлено.';\n});",
     hints: [
       "Проверь name.trim(), затем email, затем message.trim().",
       "Регистрируй submit на form; первой строкой вызови event.preventDefault().",
       "form.elements.namedItem('email').value; результат функции присвой textContent у #form-status.",
     ],
     tests:
-      "test('Обязательное имя',()=>equal(window.validateContact(' ','a@b.ru','Текст'),'Введите имя')); test('Email',()=>{['','a','a@b','a b@c.ru'].forEach(email=>equal(window.validateContact('А',email,'Текст'),'Введите корректный email'));}); test('Обязательное сообщение',()=>equal(window.validateContact('А','a@b.ru','  '),'Введите сообщение')); test('Верные данные',()=>equal(window.validateContact(' Анна ',' a@b.ru ',' Привет '),'')); test('Submit отменён и показана ошибка',()=>{const e=new Event('submit',{cancelable:true,bubbles:true}); q('#contact-form').dispatchEvent(e); ok(e.defaultPrevented); equal(q('#form-status').textContent,'Введите имя');}); test('Успешная проверка формы',()=>{const f=q('#contact-form'); f.elements.namedItem('name').value='Анна'; f.elements.namedItem('email').value='a@b.ru'; f.elements.namedItem('message').value='Привет'; f.dispatchEvent(new Event('submit',{cancelable:true})); equal(q('#form-status').textContent,'Данные проверены. Это учебная форма — сообщение не отправлено.');});",
+      "test('Обязательное имя',()=>equal(window.validateContact(' ','a@b.ru','Текст'),'Введите имя')); test('Email',()=>{['','a','a@b','a b@c.ru'].forEach(email=>equal(window.validateContact('А',email,'Текст'),'Введите корректный email'));}); test('Обязательное сообщение',()=>equal(window.validateContact('А','a@b.ru','  '),'Введите сообщение')); test('Верные данные',()=>equal(window.validateContact(' Анна ',' a@b.ru ',' Привет '),'')); test('Submit отменён и показана ошибка',()=>{const e=new Event('submit',{cancelable:true,bubbles:true}); q('#contact-form').dispatchEvent(e); ok(e.defaultPrevented); equal(q('#form-status').textContent,'Введите имя');}); test('Успешная проверка формы',()=>{const f=q('#contact-form'); f.elements.namedItem('name').value='Анна'; f.elements.namedItem('email').value='a@b.ru'; f.elements.namedItem('message').value='Привет'; f.dispatchEvent(new Event('submit',{cancelable:true})); equalText(q('#form-status').textContent,'Данные проверены. Это учебная форма - сообщение не отправлено.');});",
     summary:
       "Ты перехватил отправку формы, проверил данные и честно сообщил, что сообщение не отправляется на сервер.",
   },

@@ -96,17 +96,6 @@ export function Workspace({ free = false }: { free?: boolean }) {
     );
   }, [free, lessonId, progress.codes, progress.files]);
   const starterCount = Object.keys(starterCodes).length;
-  const comparisonCodes = useMemo(
-    () =>
-      free
-        ? referenceCodes
-        : Object.fromEntries(
-            lessons
-              .slice(0, lessonId)
-              .map(({ id }) => [id, referenceCodes[id]]),
-          ),
-    [free, lessonId],
-  );
   const codeSet = useMemo(
     () =>
       free
@@ -718,7 +707,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
                       <Preview
                         title="Образец NOVA"
                         page={run.page}
-                        codes={comparisonCodes}
+                        codes={referenceCodes}
                         onNavigate={navigatePreview}
                       />
                     </div>

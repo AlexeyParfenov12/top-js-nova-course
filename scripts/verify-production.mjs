@@ -117,7 +117,7 @@ try {
     await page
       .frameLocator(`iframe[title="${title}"]`)
       .getByRole("heading", {
-        name: "NOVA — будущее начинается здесь",
+        name: "NOVA - будущее начинается здесь",
         exact: true,
       })
       .waitFor();

@@ -30,6 +30,12 @@ test("Простой маршрут от лекции через две зада
       .getByRole("button", { name: "Я с вами!" }),
   ).toBeVisible();
   await expect(htmlExample.getByText(/button#hello/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Как читать пример" }),
+  ).toHaveCount(3);
+  const question = page.locator(".concept-question").first();
+  await question.locator("summary").click();
+  await expect(question).toContainText("Мы поменяли только видимую надпись");
   const contents = page.getByRole("navigation", { name: "Содержание лекции" });
   await expect(contents.getByRole("button")).toHaveCount(6);
   await contents.getByRole("button", { name: /Разбор заданий/ }).click();
@@ -260,7 +266,18 @@ test("Все решения, ошибочные черновики, упражн
       {},
       lessons[0].tests,
     );
-    return { results, timeout, syntax, regression };
+    const legacyDashes = [];
+    for (const l of [lessons[0], lessons[7]]) {
+      legacyDashes.push(
+        await checkInSandbox(
+          l.page,
+          { ...codes, [l.id]: l.solution.replace(" - ", " — ") },
+          {},
+          l.tests,
+        ),
+      );
+    }
+    return { results, timeout, syntax, regression, legacyDashes };
   });
   for (const l of report.results) {
     expect(
@@ -280,6 +297,10 @@ test("Все решения, ошибочные черновики, упражн
   expect(report.timeout.some((r: any) => !r.passed)).toBe(true);
   expect(report.syntax.some((r: any) => !r.passed)).toBe(true);
   expect(report.regression.some((r: any) => !r.passed)).toBe(true);
+  for (const checks of report.legacyDashes) {
+    expect(checks.length).toBeGreaterThan(0);
+    expect(checks.every((result: any) => result.passed)).toBe(true);
+  }
 });
 test("Путь студента: редактор → проверка → 9 этапов → перезагрузка → ZIP → независимый сайт", async ({
   page,
@@ -362,7 +383,7 @@ test("Путь студента: редактор → проверка → 9 э�
   const nova = await page.context().newPage();
   await nova.goto(pathToFileURL(path.join(folder, "index.html")).href);
   await expect(nova.locator("#hero-title")).toHaveText(
-    "NOVA — будущее начинается здесь",
+    "NOVA - будущее начинается здесь",
   );
   await nova.locator("#hello").click();
   await expect(nova.locator("#greeting")).toHaveText("Увидимся на NOVA!");
@@ -396,10 +417,10 @@ test("Задание второго дня открывается с готов�
   const result = page.frameLocator('iframe[title="Предпросмотр NOVA"]');
   const example = page.frameLocator('iframe[title="Образец NOVA"]');
   await expect(result.locator("#hero-title")).toHaveText(
-    "NOVA — будущее начинается здесь",
+    "NOVA - будущее начинается здесь",
   );
   await expect(example.locator("#hero-title")).toHaveText(
-    "NOVA — будущее начинается здесь",
+    "NOVA - будущее начинается здесь",
   );
   const trigger = page.getByRole("button", { name: "Условие задания" });
   const dialog = page.getByRole("dialog", { name: "Функции и события" });
@@ -425,7 +446,7 @@ test("Задание второго дня открывается с готов�
   await page.reload();
   await expect(page.getByText("Этап добавлен", { exact: true })).toBeVisible();
   await expect(result.locator("#hero-title")).toHaveText(
-    "NOVA — будущее начинается здесь",
+    "NOVA - будущее начинается здесь",
   );
   await page.goto("#/project");
   await expect(page.getByRole("progressbar")).toHaveAttribute(
@@ -645,10 +666,66 @@ test("Практика восстанавливает заготовку, отк
   await page.getByRole("button", { name: "Проверить решение", exact: true }).click();
   await expect(page.locator(".test-result.failed")).toContainText("stage-1.js, строка 2");
 });
+test("В первой паре образец открывает меню и готовый калькулятор NOVA", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 873, height: 884 });
+  await page.goto("#/workspace/1");
+  const sample = page.frameLocator('iframe[title="Образец NOVA"]');
+  const menu = sample.locator("#menu-toggle");
+  await menu.click();
+  await expect(menu).toHaveAttribute("aria-expanded", "true");
+  await menu.click();
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await menu.click();
+  await sample.locator('#site-nav a[href="tickets.html"]').click();
+  await expect(sample.locator("#ticket-total")).toHaveText("2500 ₽");
+  await sample.locator("#quantity").fill("2");
+  await expect(sample.locator("#ticket-total")).toHaveText("5000 ₽");
+});
+
+test("Два ученика сохраняют разные черновики независимо", async ({
+  browser,
+  baseURL,
+  page,
+}) => {
+  const otherStudent = await browser.newPage({ baseURL });
+  try {
+    const students = [
+      { tab: page, title: "Фестиваль первого ученика" },
+      { tab: otherStudent, title: "Фестиваль второго ученика" },
+    ];
+    await Promise.all(
+      students.map(async ({ tab, title }) => {
+        await tab.goto("#/workspace/1");
+        const editor = tab.getByRole("textbox", {
+          name: "Редактор кода lesson-1/scripts/stage-1.js",
+        });
+        await editor.press("ControlOrMeta+A");
+        await tab.keyboard.insertText(
+          `document.querySelector('#hero-title').textContent = ${JSON.stringify(title)};`,
+        );
+        await tab.getByRole("button", { name: "Запустить", exact: true }).click();
+        await expect(
+          tab.frameLocator('iframe[title="Предпросмотр NOVA"]').locator("#hero-title"),
+        ).toHaveText(title);
+      }),
+    );
+    for (const { tab, title } of students) {
+      await tab.reload();
+      await expect(
+        tab.frameLocator('iframe[title="Предпросмотр NOVA"]').locator("#hero-title"),
+      ).toHaveText(title);
+    }
+  } finally {
+    await otherStudent.close();
+  }
+});
+
 test("Самостоятельный образец NOVA", async ({ page }) => {
   await page.goto("nova/index.html");
   await expect(page.locator("#hero-title")).toHaveText(
-    "NOVA — будущее начинается здесь",
+    "NOVA - будущее начинается здесь",
   );
   await page.getByRole("button", { name: "Я с вами!" }).click();
   await expect(page.locator("#greeting")).toHaveText("Увидимся на NOVA!");
