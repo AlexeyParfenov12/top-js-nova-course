@@ -31,9 +31,9 @@ test("Простой маршрут от лекции через две зада
       .getByRole("button", { name: "Я с вами!" }),
   ).toBeVisible();
   await expect(htmlExample.getByText(/button#hello/)).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Разбор кода" }),
-  ).toHaveCount(3);
+  await expect(page.locator(".lecture-more > summary").filter({
+    hasText: /^Разбор кода$/,
+  })).toHaveCount(3);
   const question = page.locator(".concept-question").first();
   await question.locator("summary").click();
   await expect(question).toContainText("Мы поменяли только видимую надпись");
@@ -44,6 +44,7 @@ test("Простой маршрут от лекции через две зада
     page.getByRole("heading", { name: /Разбор заданий/ }),
   ).toBeFocused();
   await expect(page).toHaveURL(/#\/lesson\/1$/);
+  await page.getByText("Заготовки и эталоны", { exact: true }).click();
   const starter = await page
     .getByLabel("Заготовка задачи 1", { exact: true })
     .textContent();
@@ -122,6 +123,38 @@ test("Простой маршрут от лекции через две зада
   await expect(navigator).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(navigator).not.toBeVisible();
+});
+test("Лекция сравнивает одну и ту же страницу до и после добавления кода", async ({
+  page,
+}) => {
+  await page.goto("#/lesson/1");
+  const demo = page.frameLocator('iframe[title="Демонстрация NOVA"]');
+  const greet = demo.getByRole("button", { name: "Я с вами!", exact: true });
+  await greet.click();
+  await expect(demo.locator("#greeting")).toHaveText("");
+  await page.getByRole("button", { name: "С новым кодом" }).click();
+  await expect(demo.locator("#hero-title")).toHaveText("NOVA - будущее начинается здесь");
+  await greet.click();
+  await expect(demo.locator("#greeting")).toHaveText("Увидимся на NOVA!");
+  await page.getByRole("button", { name: "Сбросить демонстрацию" }).click();
+  await expect(demo.locator("#greeting")).toHaveText("");
+  await page.getByRole("button", { name: "До кода" }).click();
+  await expect(demo.locator("#hero-title")).toContainText("Будущее ближе");
+});
+test("Демонстрация формы проверяет отправку настоящим кликом", async ({ page }) => {
+  await page.goto("#/lesson/8");
+  const demo = page.frameLocator('iframe[title="Демонстрация NOVA"]');
+  const submit = demo.getByRole("button", { name: /Проверить сообщение/ });
+  await submit.click();
+  await expect(demo.locator("#form-status")).toHaveText("");
+  await page.getByRole("button", { name: "С новым кодом" }).click();
+  await submit.click();
+  await expect(demo.locator("#form-status")).toHaveText("Введите имя");
+  await demo.getByLabel("Имя").fill("Анна");
+  await demo.getByLabel("Email").fill("test@example.com");
+  await demo.getByLabel("Сообщение").fill("До встречи на NOVA!");
+  await submit.click();
+  await expect(demo.locator("#form-status")).toContainText("Данные проверены.");
 });
 test("Чтение и задания адаптируются к компьютеру, планшету и телефону", async ({
   page,

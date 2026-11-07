@@ -9,6 +9,8 @@ import {
 } from "../content/assignmentWalkthroughs";
 import { assignmentGuides, lectureExamples } from "../content/lectureExamples";
 import { conceptGuides, type ConceptGuide } from "../content/conceptGuides";
+import { lessonStories } from "../content/lessonStories";
+import { LectureDemo } from "./LectureDemo";
 import { LectureFigure } from "./LectureFigure";
 import { SyntaxCode } from "./SyntaxCode";
 
@@ -25,8 +27,9 @@ export function CourseLecture({
   const guide = assignmentGuides[lesson.id];
   const walkthrough = assignmentWalkthroughs[lesson.id];
   const conceptNotes = conceptGuides[lesson.id];
+  const story = lessonStories[lesson.id];
   const chapters = [
-    { id: "lecture-start", title: "Зачем это нужно" },
+    { id: "lecture-start", title: "Демонстрация" },
     ...lecture.concepts.map((concept, index) => ({
       id: `lecture-concept-${index + 1}`,
       title: concept.title,
@@ -59,24 +62,20 @@ export function CourseLecture({
         </ol>
       </nav>
       <article className="classroom-card lecture-body" aria-label="Лекция">
-        <section>
+        <section className="lecture-opening">
           <Chapter number={1} id="lecture-start" time="0–5">
-            Зачем это нужно
+            {story.question}
           </Chapter>
-          {lecture.opening.map((text) => (
-            <p key={text}>{text}</p>
-          ))}
-          {lesson.id === 1 && (
-            <p>
-              Код будем писать прямо в браузере. В «Тренажёре» попробуем
-              короткие команды. В «Практике NOVA» нажмём «Запустить», чтобы
-              увидеть свой результат на сайте, и «Проверить решение», чтобы
-              узнать, всё ли сработало.
-            </p>
-          )}
-          <p className="lecture-outcome">
-            <strong>К концу лекции</strong> {lecture.outcome}
+          <p className="lecture-demo-action">
+            <strong>Что попробовать</strong>
+            {story.action}
           </p>
+          <LectureDemo lesson={lesson} />
+          <details className="lecture-more demo-observation">
+            <summary>Что должно произойти</summary>
+            <p>{story.observe}</p>
+            <p><strong>К концу лекции</strong> {lecture.outcome}</p>
+          </details>
         </section>
         {lecture.concepts.map((concept, index) => (
           <section key={concept.title}>
@@ -87,66 +86,73 @@ export function CourseLecture({
             >
               {concept.title}
             </Chapter>
-            <p>{concept.paragraphs[0]}</p>
+            <p className="lecture-step-lead">{story.steps[index]}</p>
             <LectureFigure code={concept.code} example={examples[index]} />
-            <ConceptNotes guide={conceptNotes[index]} />
-            {concept.paragraphs.slice(1).map((text) => (
-              <p key={text}>{text}</p>
-            ))}
+            <ConceptQuestion guide={conceptNotes[index]} />
+            <details className="lecture-more">
+              <summary>Разбор кода</summary>
+              <ol>
+                {conceptNotes[index].steps.map((step) => (
+                  <li key={step}><InlineCode text={step} /></li>
+                ))}
+              </ol>
+              {concept.paragraphs.map((text) => <p key={text}>{text}</p>)}
+            </details>
           </section>
         ))}
         <section>
           <Chapter number={5} id="lecture-example" time="17–27">
             Разбор заданий
           </Chapter>
-          <p>
-            Здесь те же заготовки и эталоны, что в «Тренажёре» и «Практике
-            NOVA». Сначала разберите приёмы и заготовку. Готовый код можно
-            открыть для сверки.
-          </p>
-          <div className="concept-notes">
+          <div className="lecture-handoff">
+            <div>
+              <h3>Тренажёр</h3>
+              <ol>
+                {lesson.exercises.map((exercise) => (
+                  <li key={exercise.slot}>{exercise.title}</li>
+                ))}
+              </ol>
+            </div>
+            <div>
+              <h3>Практика NOVA</h3>
+              <p>{guide.practice}</p>
+            </div>
+          </div>
+          <details className="lecture-more">
+            <summary>Заготовки и эталоны</summary>
             <h3>Что понадобится в заданиях</h3>
             <ol>
               {assignmentPrimer[lesson.id].map((step) => (
                 <li key={step}><InlineCode text={step} /></li>
               ))}
             </ol>
-          </div>
-          <h3>Две задачи тренажёра</h3>
-          <div className="lecture-assignment-list">
-            {lesson.exercises.map((exercise, index) => (
-              <div className="lecture-assignment" key={exercise.slot}>
-                <h4>
-                  {index + 1}. {exercise.title}
-                </h4>
-                <div className="lecture-assignment-content">
-                  <pre aria-label={`Заготовка задачи ${index + 1}`}>
-                    <SyntaxCode code={exercise.starter} />
-                  </pre>
-                  <p>{guide.trainer[index]}</p>
+            <h3>Две задачи тренажёра</h3>
+            <div className="lecture-assignment-list">
+              {lesson.exercises.map((exercise, index) => (
+                <div className="lecture-assignment" key={exercise.slot}>
+                  <h4>{index + 1}. {exercise.title}</h4>
+                  <div className="lecture-assignment-content">
+                    <pre aria-label={`Заготовка задачи ${index + 1}`}>
+                      <SyntaxCode code={exercise.starter} />
+                    </pre>
+                    <p>{guide.trainer[index]}</p>
+                  </div>
+                  <AssignmentLineNotes notes={walkthrough.trainer[index]} />
+                  <SolutionPreview code={exercise.solution} label={`Эталон задачи ${index + 1}`} />
                 </div>
-                <AssignmentLineNotes
-                  notes={walkthrough.trainer[index]}
-                  initiallyOpen={index === 0}
-                />
-                <SolutionPreview
-                  code={exercise.solution}
-                  label={`Эталон задачи ${index + 1}`}
-                />
-              </div>
-            ))}
-          </div>
-          <h3>Практика NOVA</h3>
-          <p>{guide.practice}</p>
-          <LectureFigure
-            code={lesson.starter.trimEnd()}
-            example={{
-              panels: [{ title: "Ожидаемый результат", lines: guide.sample }],
-              caption: guide.result,
-            }}
-          />
-          <AssignmentLineNotes notes={walkthrough.practice} />
-          <SolutionPreview code={lesson.solution} label="Эталон практики NOVA" />
+              ))}
+            </div>
+            <h3>Практика NOVA</h3>
+            <LectureFigure
+              code={lesson.starter.trimEnd()}
+              example={{
+                panels: [{ title: "Ожидаемый результат", lines: guide.sample }],
+                caption: guide.result,
+              }}
+            />
+            <AssignmentLineNotes notes={walkthrough.practice} />
+            <SolutionPreview code={lesson.solution} label="Эталон практики NOVA" />
+          </details>
         </section>
         <section>
           <Chapter number={6} id="lecture-end" time="27–30">
@@ -187,35 +193,21 @@ function SolutionPreview({ code, label }: { code: string; label: string }) {
   );
 }
 
-function ConceptNotes({ guide }: { guide: ConceptGuide }) {
+function ConceptQuestion({ guide }: { guide: ConceptGuide }) {
   return (
-    <div className="concept-notes">
-      <h3>Разбор кода</h3>
-      <ol>
-        {guide.steps.map((step) => (
-          <li key={step}><InlineCode text={step} /></li>
-        ))}
-      </ol>
-      <details className="concept-question">
-        <summary>
-          <strong>Проверь себя</strong>
-          <span>{guide.question}</span>
-        </summary>
-        <p>{guide.answer}</p>
-      </details>
-    </div>
+    <details className="concept-question">
+      <summary>
+        <strong>Вопрос для обсуждения</strong>
+        <span>{guide.question}</span>
+      </summary>
+      <p>{guide.answer}</p>
+    </details>
   );
 }
 
-function AssignmentLineNotes({
-  notes,
-  initiallyOpen = false,
-}: {
-  notes: LineNote[];
-  initiallyOpen?: boolean;
-}) {
+function AssignmentLineNotes({ notes }: { notes: LineNote[] }) {
   return (
-    <details className="assignment-line-notes" open={initiallyOpen}>
+    <details className="assignment-line-notes">
       <summary>Построчный разбор</summary>
       <ol aria-label="Пояснения к строкам">
         {notes.map((note, index) =>

@@ -85,6 +85,7 @@ export function Preview({
     window.addEventListener("message", listener);
     return () => window.removeEventListener("message", listener);
   }, [token]);
+  // Let submit handlers run in the iframe. The preview CSP blocks submissions.
   return buildError ? (
     <div className="preview-error">
       <h3>Не удалось запустить код</h3>
@@ -100,7 +101,7 @@ export function Preview({
     <iframe
       ref={frame}
       title={title}
-      sandbox="allow-scripts"
+      sandbox="allow-scripts allow-forms"
       srcDoc={doc.html}
       className="nova-frame"
     />

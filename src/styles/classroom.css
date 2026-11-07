@@ -405,6 +405,14 @@
   gap: 18px;
 }
 
+.classroom-lecture {
+  width: min(1160px, 100% - 48px);
+}
+
+.classroom-lecture .classroom-heading {
+  margin: 20px 0;
+}
+
 .lecture-outline {
   position: sticky;
   top: 92px;
@@ -465,12 +473,20 @@
 
 .lecture-body {
   min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
-.lecture-body section + section {
-  margin-top: 28px;
-  padding-top: 25px;
-  border-top: 1px solid var(--edge);
+.lecture-body > section {
+  padding: clamp(15px, 2.3vw, 27px);
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.lecture-body > section + section {
+  margin-top: 15px;
 }
 
 .lecture-chapter {
@@ -487,7 +503,7 @@
   gap: 9px;
   margin: 0;
   scroll-margin-top: 94px;
-  font-size: clamp(19px, 2vw, 24px);
+  font-size: clamp(21px, 2.4vw, 29px);
 }
 
 .lecture-chapter h2 span,
@@ -526,16 +542,103 @@
   color: var(--ink);
 }
 
-.lecture-body .lecture-outcome {
-  padding: 11px 13px;
-  border-left: 3px solid #a47bcd;
-  border-radius: 0 8px 8px 0;
-  background: #f7f1fb;
+.lecture-body .lecture-demo-action,
+.lecture-body .lecture-step-lead {
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.55;
 }
 
-.lecture-body .lecture-outcome strong {
+.lecture-body .lecture-demo-action strong {
   display: block;
   margin-bottom: 2px;
+}
+
+.lecture-demo {
+  overflow: hidden;
+  border: 1px solid #dcd3ea;
+  border-radius: 12px;
+}
+
+.lecture-demo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 9px 12px;
+  background: #2d2140;
+  color: #f7f1ff;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.lecture-demo-bar [role="group"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.lecture-demo-bar button {
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid #665578;
+  border-radius: 7px;
+  background: transparent;
+  color: #f7f1ff;
+  font: inherit;
+}
+
+.lecture-demo-bar button:hover,
+.lecture-demo-bar button[aria-pressed="true"] {
+  border-color: #d9c5f6;
+  background: #eee1fb;
+  color: #3d2563;
+}
+
+.lecture-demo-bar .demo-reset {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  padding: 0;
+}
+
+.lecture-demo-frame {
+  height: 296px;
+}
+
+.lecture-demo-frame iframe {
+  display: block;
+}
+
+.lecture-demo[data-lesson="2"] .lecture-demo-frame {
+  height: 112px;
+}
+
+.lecture-demo[data-lesson="3"] .lecture-demo-frame,
+.lecture-demo[data-lesson="8"] .lecture-demo-frame {
+  height: 395px;
+}
+
+.lecture-handoff {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 11px;
+}
+
+.lecture-handoff > div {
+  min-width: 0;
+  padding: 12px 15px;
+  border-radius: 9px;
+  background: #f7f2fa;
+}
+
+.lecture-body .lecture-handoff h3 {
+  margin: 0 0 5px;
+}
+
+.lecture-body .lecture-handoff p,
+.lecture-body .lecture-handoff ol {
+  margin-bottom: 0;
 }
 
 .lecture-body pre {
@@ -634,6 +737,7 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   background: transparent;
+  font-size: clamp(13px, 1.3vw, 16px);
 }
 
 .lecture-figure-result {
@@ -809,23 +913,32 @@
   margin: 0;
 }
 
-.concept-notes {
-  margin: 17px 0;
-  padding: 13px 15px;
+.lecture-more {
+  margin: 10px 0 0;
+  padding: 9px 12px;
   border: 1px solid var(--edge);
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fbf9fd;
 }
 
-.lecture-body .concept-notes h3 {
-  margin: 0 0 8px;
+.lecture-more summary {
+  color: #4d3374;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.lecture-body .concept-notes ol {
-  margin: 0;
+.lecture-body .lecture-more > ol,
+.lecture-body .lecture-more > p {
+  margin-top: 8px;
 }
 
-.concept-notes code {
+.lecture-body .lecture-more > p:last-child,
+.lecture-body .lecture-more > ol:last-child {
+  margin-bottom: 0;
+}
+
+.lecture-more li > code {
   padding: 1px 4px;
   border-radius: 4px;
   background: #f0e9f8;
@@ -857,7 +970,12 @@
 }
 
 @media (max-width: 650px) {
+  .classroom-lecture {
+    width: calc(100% - 28px);
+  }
+
   .lecture-figure-grid,
+  .lecture-handoff,
   .lecture-assignment-content {
     grid-template-columns: minmax(0, 1fr);
   }

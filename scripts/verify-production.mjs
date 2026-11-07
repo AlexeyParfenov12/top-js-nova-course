@@ -52,6 +52,7 @@ try {
     await page.screenshot({ path: process.argv[11], fullPage: false });
   }
   await outline.getByRole("button", { name: /Разбор заданий/ }).click();
+  await page.getByText("Заготовки и эталоны", { exact: true }).click();
   await page.getByLabel("Заготовка задачи 1", { exact: true }).waitFor();
   await page
     .getByRole("heading", { name: "Практика NOVA", exact: true })

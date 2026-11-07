@@ -57,7 +57,7 @@ function Classroom({ lesson }: { lesson: Lesson }) {
   }
 
   return (
-    <main className="classroom">
+    <main className={phase === "lecture" ? "classroom classroom-lecture" : "classroom"}>
       <div className="classroom-top">
         <Link to="/curriculum">
           <ArrowLeft size={15} /> К программе
@@ -74,7 +74,7 @@ function Classroom({ lesson }: { lesson: Lesson }) {
           ДЕНЬ {lesson.day} · ПАРА {pairOfDay} ИЗ 3
         </p>
         <h1>{lesson.title}</h1>
-        <div>{lesson.goal}</div>
+        {phase === "trainer" && <div>{lesson.goal}</div>}
       </header>
 
       <nav
@@ -178,13 +178,13 @@ function PairPlan({
   const plan = [
     [
       "0–5",
-      "Начало",
-      `Посмотрите, что соберём к концу пары: ${feature.toLowerCase()}.`,
+      "Демонстрация",
+      `Сравните фрагмент NOVA до и после добавления кода. Сегодняшний результат — ${feature.toLowerCase()}.`,
     ],
     [
       "5–17",
-      "Объяснение",
-      "Пройдите разделы 2–4 по порядку. На каждый раздел отведите 4 минуты: сначала обсудите понятие, затем прочитайте пример кода.",
+      "Три шага",
+      "Сопоставьте код и результат на каждом шаге. Откройте разбор, чтобы проследить команды, и обсудите вопрос перед переходом дальше.",
     ],
     [
       "17–27",
