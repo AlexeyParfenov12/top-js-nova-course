@@ -4,6 +4,7 @@ import type { Lecture } from "../content/lectures";
 import type { Lesson } from "../content/types";
 import { assignmentGuides, lectureExamples } from "../content/lectureExamples";
 import { LectureFigure } from "./LectureFigure";
+import { JavaScriptCode } from "./JavaScriptCode";
 
 const conceptTimes = ["5–9", "9–13", "13–17"];
 
@@ -94,7 +95,7 @@ export function CourseLecture({
                   {index + 1}. {exercise.title}
                 </h4>
                 <pre aria-label={`Заготовка задачи ${index + 1}`}>
-                  <code>{exercise.starter}</code>
+                  <JavaScriptCode code={exercise.starter} />
                 </pre>
                 <p>{guide.trainer[index]}</p>
               </div>

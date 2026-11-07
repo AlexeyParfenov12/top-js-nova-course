@@ -246,6 +246,10 @@
 }
 
 .classroom-trainer .mini-editor-caption {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   border: 1px solid var(--edge);
   border-bottom: 0;
   border-radius: 8px 8px 0 0;
@@ -257,19 +261,11 @@
   color: var(--soft);
 }
 
-.classroom-trainer .exercise textarea {
-  display: block;
-  resize: vertical;
-  width: 100%;
-  min-height: 158px;
-  padding: 13px;
-  font:
-    14px/1.6 Consolas,
-    monospace;
+.classroom-trainer .trainer-editor {
+  min-width: 0;
+  height: 218px;
   border: 1px solid var(--edge);
   border-radius: 0 0 8px 8px;
-  color: var(--ink);
-  background: #fdfbff;
 }
 
 .classroom .exercise-actions {

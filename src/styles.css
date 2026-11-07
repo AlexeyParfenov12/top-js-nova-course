@@ -704,6 +704,18 @@ body {
   background: #ffffff13;
   color: #d4bfdc;
 }
+.javascript-code .js-keyword {
+  color: #6941af;
+}
+.javascript-code .js-string {
+  color: #176743;
+}
+.javascript-code .js-number {
+  color: #9b411d;
+}
+.javascript-code .js-comment {
+  color: #657284;
+}
 pre {
   font-family: Consolas, monospace;
   font-size: 13px;

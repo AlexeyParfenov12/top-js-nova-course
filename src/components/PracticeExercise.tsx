@@ -3,7 +3,9 @@ import { Check, Lightbulb, RotateCcw } from "lucide-react";
 import type { Exercise } from "../content/types";
 import { useProgress } from "../engine/persistence";
 import { checkInSandbox } from "../engine/execution";
-export function PracticeExercise({
+import { CodeEditor } from "./CodeEditor";
+import { JavaScriptCode } from "./JavaScriptCode";
+export default function PracticeExercise({
   exercise,
   lessonId,
   index,
@@ -56,22 +58,27 @@ export function PracticeExercise({
       <p>{exercise.prompt}</p>
       <div className="mini-editor-caption">
         <span>JavaScript</span>
+        <span>Подсказки при вводе · Ctrl+Пробел</span>
       </div>
-      <textarea
-        spellCheck={false}
-        disabled={busy}
-        aria-label={`Код упражнения ${index + 1}`}
-        value={code}
-        onChange={(e) => {
-          if (e.target.value.length > 100000) return;
-          update((p) => ({
-            ...p,
-            exerciseDrafts: { ...p.exerciseDrafts, [key]: e.target.value },
-            exercises: { ...p.exercises, [key]: false },
-          }));
-          setMessage("");
-        }}
-      />
+      <div className="trainer-editor">
+        <CodeEditor
+          file={`trainer/lesson-${lessonId}/exercise-${exercise.slot}.js`}
+          readOnly={busy}
+          ariaLabel={`Код упражнения ${index + 1}`}
+          value={code}
+          onSizeLimit={() =>
+            setMessage("Размер файла ограничен 100 000 символов.")
+          }
+          onChange={(nextCode) => {
+            update((p) => ({
+              ...p,
+              exerciseDrafts: { ...p.exerciseDrafts, [key]: nextCode },
+              exercises: { ...p.exercises, [key]: false },
+            }));
+            setMessage("");
+          }}
+        />
+      </div>
       <div className="exercise-actions">
         <button className="primary" onClick={check} disabled={busy}>
           {busy ? "Проверяем…" : "Проверить"}
@@ -96,7 +103,9 @@ export function PracticeExercise({
         </button>
         <details>
           <summary>Посмотреть эталон</summary>
-          <pre>{exercise.solution}</pre>
+          <pre>
+            <JavaScriptCode code={exercise.solution} />
+          </pre>
         </details>
       </div>
       {hint && <p className="tip">{exercise.hint}</p>}

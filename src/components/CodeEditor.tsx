@@ -1,5 +1,7 @@
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
+import { useRef } from "react";
+import { flushSync } from "react-dom";
 import EditorWorker from "monaco-editor/editor/editor.worker.js?worker";
 import TsWorker from "monaco-editor/languages/features/typescript/ts.worker.js?worker";
 import CssWorker from "monaco-editor/languages/features/css/css.worker.js?worker";
@@ -22,6 +24,7 @@ monaco.editor.defineTheme("top-light", {
     { token: "comment", foreground: "657284" },
     { token: "keyword", foreground: "6941af" },
     { token: "string", foreground: "176743" },
+    { token: "number", foreground: "9b411d" },
   ],
   colors: {
     "editor.background": "#ffffff",
@@ -52,19 +55,37 @@ export function CodeEditor({
   file,
   value,
   onChange,
+  onSizeLimit,
   readOnly = false,
+  ariaLabel = "Редактор кода " + file,
 }: {
   file: string;
   value: string;
   onChange: (code: string) => void;
+  onSizeLimit: () => void;
   readOnly?: boolean;
+  ariaLabel?: string;
 }) {
+  const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+
   return (
     <Editor
       path={file}
       language={languageFor(file)}
       value={value}
-      onChange={(v) => onChange(v || "")}
+      onMount={(instance) => {
+        editor.current = instance;
+      }}
+      onChange={(next = "") => {
+        if (readOnly || next === value) return;
+        if (next.length > 100000) {
+          editor.current?.setValue(value);
+          onSizeLimit();
+          return;
+        }
+        // Monaco emits changes outside React. Commit before the next keystroke.
+        flushSync(() => onChange(next));
+      }}
       theme="top-light"
       loading={<div className="editor-loading">Открываем редактор…</div>}
       options={{
@@ -81,7 +102,11 @@ export function CodeEditor({
         insertSpaces: true,
         formatOnPaste: true,
         accessibilitySupport: "on",
-        ariaLabel: "Редактор кода " + file,
+        quickSuggestions: { other: "on", comments: "off", strings: "off" },
+        suggestOnTriggerCharacters: true,
+        wordBasedSuggestions: "currentDocument",
+        fixedOverflowWidgets: true,
+        ariaLabel,
       }}
     />
   );

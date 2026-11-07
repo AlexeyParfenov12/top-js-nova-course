@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -12,10 +12,11 @@ import { lectures } from "../content/lectures";
 import { pair, pairMinutes, sessions } from "../content/sessions";
 import type { Lesson } from "../content/types";
 import { useProgress } from "../engine/persistence";
-import { PracticeExercise } from "../components/PracticeExercise";
 import { CourseNavigator } from "../components/CourseNavigator";
 import { CourseLecture } from "../components/CourseLecture";
 import "../styles/classroom.css";
+
+const PracticeExercise = lazy(() => import("../components/PracticeExercise"));
 
 export function LessonPage() {
   const { id } = useParams();
@@ -130,12 +131,14 @@ function Classroom({ lesson }: { lesson: Lesson }) {
               </button>
             ))}
           </div>
-          <PracticeExercise
-            key={exercise.slot}
-            exercise={exercise}
-            lessonId={lesson.id}
-            index={exerciseIndex}
-          />
+          <Suspense fallback={<p role="status">Открываем тренажёр…</p>}>
+            <PracticeExercise
+              key={exercise.slot}
+              exercise={exercise}
+              lessonId={lesson.id}
+              index={exerciseIndex}
+            />
+          </Suspense>
         </section>
       )}
 

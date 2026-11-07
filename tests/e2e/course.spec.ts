@@ -67,13 +67,18 @@ test("Простой маршрут от лекции через две зада
     page.getByRole("heading", { name: "Поменяй заголовок" }),
   ).toBeVisible();
   await expect(page.locator(".exercise")).toHaveCount(1);
-  await expect(page.getByLabel("Код упражнения 1")).toHaveValue(starter ?? "");
+  const trainerCode = page.locator(".trainer-editor .view-line");
+  await expect(trainerCode).toHaveCount(starter?.split("\n").length ?? 0);
+  expect(
+    (await trainerCode.allTextContents()).join("\n").replaceAll("\u00a0", " ").trimEnd(),
+  ).toBe(starter?.trimEnd());
   await page.getByRole("button", { name: "Ко второй задаче" }).click();
   await page
-    .getByLabel("Код упражнения 2")
-    .fill(
-      "function connectButton(){const button=document.querySelector('#hello');button.addEventListener('click',()=>button.textContent='Я иду на NOVA');}",
-    );
+    .getByRole("textbox", { name: "Код упражнения 2" })
+    .press("ControlOrMeta+A");
+  await page.keyboard.insertText(
+    "function connectButton(){const button=document.querySelector('#hello');button.addEventListener('click',()=>button.textContent='Я иду на NOVA');}",
+  );
   await page.getByRole("button", { name: "Проверить", exact: true }).click();
   await expect(page.getByText("Верно! Все сценарии пройдены.")).toBeVisible();
   await expect(page.getByText("Сохранено на устройстве").first()).toBeVisible();
@@ -440,10 +445,11 @@ test("Лекция, тренажёр, перенос JSON и отказ от п�
     .getByRole("button", { name: /Тренажёр/ })
     .click();
   await page
-    .getByLabel("Код упражнения 1")
-    .fill(
-      "function renameTitle(text){document.querySelector('#hero-title').textContent=text;}",
-    );
+    .getByRole("textbox", { name: "Код упражнения 1" })
+    .press("ControlOrMeta+A");
+  await page.keyboard.insertText(
+    "function renameTitle(text){document.querySelector('#hero-title').textContent=text;}",
+  );
   await page
     .getByRole("button", { name: "Проверить", exact: true })
     .first()
@@ -507,6 +513,38 @@ test("Адаптивные экраны без горизонтального п
       path: testInfo.outputPath(`home-${size.width}.png`),
       fullPage: true,
     });
+  }
+});
+test("Подсветка и автодополнение JavaScript в лекции и редакторах", async ({
+  page,
+}) => {
+  await page.goto("#/lesson/1");
+  const snippet = page.locator(".lecture-figure .javascript-code").first();
+  await expect(snippet.getByText("const", { exact: true })).toHaveCSS(
+    "color",
+    "rgb(105, 65, 175)",
+  );
+  await expect(snippet.getByText("'#hello'", { exact: true })).toHaveCSS(
+    "color",
+    "rgb(23, 103, 67)",
+  );
+  await page.getByRole("button", { name: /Тренажёр.*25 мин/ }).click();
+  for (const editorName of [
+    "Код упражнения 1",
+    "Редактор кода lesson-1/scripts/stage-1.js",
+  ]) {
+    const editor = page.getByRole("textbox", { name: editorName, exact: true });
+    await editor.press("ControlOrMeta+A");
+    await page.keyboard.type("document.querySel");
+    const suggestion = page.getByRole("listitem", { name: /^querySelector,/ });
+    await expect(suggestion).toBeVisible();
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".monaco-editor .view-lines")).toHaveText(
+      "document.querySelector",
+    );
+    if (editorName === "Код упражнения 1") {
+      await page.goto("#/workspace/1");
+    }
   }
 });
 test("Ввод кода в Monaco, сохранение черновика и реальный запуск", async ({

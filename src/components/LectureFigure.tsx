@@ -1,4 +1,5 @@
 import type { LectureExample, VisualLine } from "../content/lectureExamples";
+import { JavaScriptCode } from "./JavaScriptCode";
 
 export function LectureFigure({
   code,
@@ -26,7 +27,11 @@ export function LectureFigure({
             {example.renderHtml ? "HTML" : "JavaScript"}
           </div>
           <pre>
-            <code>{code}</code>
+            {example.renderHtml ? (
+              <code>{code}</code>
+            ) : (
+              <JavaScriptCode code={code} />
+            )}
           </pre>
         </div>
         <div className="lecture-figure-result">

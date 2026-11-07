@@ -32,6 +32,7 @@ import { useProgress } from "../engine/persistence";
 import { checkInSandbox } from "../engine/execution";
 import { pages, projectFiles, referenceCodes } from "../projects/nova";
 import { CodeEditor, languageFor } from "../components/CodeEditor";
+import { JavaScriptCode } from "../components/JavaScriptCode";
 import { Preview } from "../components/Preview";
 import { CourseNavigator } from "../components/CourseNavigator";
 import "../styles/workspace.css";
@@ -145,10 +146,6 @@ export function Workspace({ free = false }: { free?: boolean }) {
   const readOnly = !free && file !== stage;
   const value = !free && file === stage ? currentCode : files[file] || "";
   function change(code: string) {
-    if (code.length > 100000) {
-      setNotice("Размер файла ограничен 100 000 символов.");
-      return;
-    }
     if (free) {
       update((p) => ({ ...p, files: { ...p.files, [file]: code } }));
     } else if (file === stage) {
@@ -420,7 +417,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
                   задания.
                 </p>
                 <pre>
-                  <code>{lesson.solution}</code>
+                  <JavaScriptCode code={lesson.solution} />
                 </pre>
                 <button
                   disabled={busy}
@@ -569,12 +566,19 @@ export function Workspace({ free = false }: { free?: boolean }) {
                     value={value}
                     readOnly={readOnly || busy}
                     onChange={change}
+                    onSizeLimit={() =>
+                      setNotice("Размер файла ограничен 100 000 символов.")
+                    }
                   />
                 </div>
               </div>
               <div className="editor-status">
                 <span>{readOnly ? "Только чтение" : status}</span>
-                <span>{fileLanguage.toUpperCase()} · Ctrl+Enter</span>
+                <span>
+                  {fileLanguage.toUpperCase()}
+                  {!readOnly && " · Ctrl+Пробел — подсказки"}
+                  {" · Ctrl+Enter"}
+                </span>
               </div>
             </div>
           </section>
