@@ -14,6 +14,7 @@ import { pair, pairMinutes, sessions } from "../content/sessions";
 import type { Lesson } from "../content/types";
 import { useProgress } from "../engine/persistence";
 import { PracticeExercise } from "../components/PracticeExercise";
+import { CourseNavigator } from "../components/CourseNavigator";
 import "../styles/classroom.css";
 
 export function LessonPage() {
@@ -59,9 +60,12 @@ function Classroom({ lesson }: { lesson: Lesson }) {
         <Link to="/curriculum">
           <ArrowLeft size={15} /> К программе
         </Link>
-        <span>
-          <Clock3 size={15} /> {pairMinutes} минут
-        </span>
+        <div className="classroom-top-tools">
+          <span>
+            <Clock3 size={15} /> {pairMinutes} минут
+          </span>
+          <CourseNavigator lessonId={lesson.id} />
+        </div>
       </div>
       <header className="classroom-heading">
         <p>
@@ -101,6 +105,7 @@ function Classroom({ lesson }: { lesson: Lesson }) {
 
       {phase === "lecture" ? (
         <>
+          <PairPlan session={session} feature={lesson.feature} />
           <section
             className="classroom-card classroom-lecture"
             aria-label="Лекция"
@@ -125,10 +130,17 @@ function Classroom({ lesson }: { lesson: Lesson }) {
               <pre>
                 <code>{session.example}</code>
               </pre>
-              <p>{session.result}</p>
+              <div className="example-explanation">
+                <h3>Как это работает</h3>
+                <ol>
+                  {session.explanation.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ol>
+                <p>{session.result}</p>
+              </div>
             </div>
           </section>
-          <TeacherPlan session={session} feature={lesson.feature} />
         </>
       ) : (
         <section
@@ -186,7 +198,7 @@ function Classroom({ lesson }: { lesson: Lesson }) {
   );
 }
 
-function TeacherPlan({
+function PairPlan({
   session,
   feature,
 }: {
@@ -197,12 +209,12 @@ function TeacherPlan({
     [
       "0–5",
       "Начало",
-      `Покажите результат, к которому идёт группа: ${feature.toLowerCase()}.`,
+      `Посмотрите, что соберём к концу пары: ${feature.toLowerCase()}.`,
     ],
     [
       "5–17",
       "Объяснение",
-      `По 4 минуты на каждый пункт конспекта. ${session.discuss}`,
+      `Разберите три идеи из конспекта вместе, по 4 минуты на каждую. ${session.discuss}`,
     ],
     ["17–30", "Живой пример", session.demo],
     [
@@ -222,10 +234,9 @@ function TeacherPlan({
     ],
   ];
   return (
-    <details className="classroom-teacher">
+    <details className="classroom-plan">
       <summary>
-        <Presentation size={18} /> План для преподавателя{" "}
-        <span>{pairMinutes} мин</span>
+        <Presentation size={18} /> План пары <span>{pairMinutes} мин</span>
       </summary>
       <ol>
         {plan.map(([time, label, instruction]) => (

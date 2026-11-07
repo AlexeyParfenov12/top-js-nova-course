@@ -20,7 +20,6 @@
 }
 
 .classroom-top a,
-.classroom-top > span,
 .classroom-skip {
   display: inline-flex;
   align-items: center;
@@ -136,7 +135,7 @@
 }
 
 .classroom-card h2 svg,
-.classroom-teacher summary svg {
+.classroom-plan summary svg {
   color: var(--accent);
   flex-shrink: 0;
 }
@@ -180,7 +179,7 @@
 .classroom-notes p,
 .classroom-example p,
 .classroom-trainer .exercise > p,
-.classroom-teacher li p {
+.classroom-plan li p {
   margin: 0;
   color: var(--soft);
   font-size: 14px;
@@ -198,14 +197,31 @@
   line-height: 1.7;
 }
 
-.classroom-teacher {
-  margin-top: 13px;
+.example-explanation h3 {
+  margin: 15px 0 6px;
+  font-size: 15px;
+}
+
+.example-explanation ol {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  color: var(--soft);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.example-explanation li + li {
+  margin-top: 5px;
+}
+
+.classroom-plan {
+  margin-bottom: 13px;
   border: 1px solid var(--edge);
   border-radius: 10px;
   background: #fbf9fd;
 }
 
-.classroom-teacher summary {
+.classroom-plan summary {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -216,28 +232,28 @@
   font-weight: 650;
 }
 
-.classroom-teacher summary::after {
+.classroom-plan summary::after {
   content: "＋";
   color: var(--accent);
 }
 
-.classroom-teacher[open] summary::after {
+.classroom-plan[open] summary::after {
   content: "−";
 }
 
-.classroom-teacher summary > span {
+.classroom-plan summary > span {
   margin-left: auto;
   color: var(--soft);
   font-size: 12px;
 }
 
-.classroom-teacher ol {
+.classroom-plan ol {
   list-style: none;
   margin: 0;
   padding: 0 15px 12px;
 }
 
-.classroom-teacher li {
+.classroom-plan li {
   display: grid;
   grid-template-columns: 82px minmax(0, 1fr);
   gap: 10px;
@@ -245,13 +261,13 @@
   border-top: 1px solid var(--edge);
 }
 
-.classroom-teacher li > span {
+.classroom-plan li > span {
   color: var(--accent);
   font-size: 13px;
   font-weight: 650;
 }
 
-.classroom-teacher li strong {
+.classroom-plan li strong {
   display: block;
   font-size: 14px;
   margin-bottom: 4px;

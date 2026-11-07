@@ -21,7 +21,28 @@ test("Простой маршрут от лекции через две зада
   await expect(
     page.getByRole("heading", { name: "Пример для разбора" }),
   ).toBeVisible();
-  await page.getByText("План для преподавателя", { exact: false }).click();
+  await expect(
+    page.getByRole("heading", { name: "Как это работает" }),
+  ).toBeVisible();
+  const navigator = page.getByRole("dialog", { name: "Навигатор курса" });
+  await page.getByRole("button", { name: "Навигатор", exact: true }).click();
+  await expect(navigator.getByText(/2 пары сегодня и 8 пар/)).toBeVisible();
+  await expect(navigator.getByRole("link")).toHaveCount(9);
+  await expect(
+    navigator.getByRole("link", { name: /Первые строки JavaScript/ }),
+  ).toHaveAttribute("aria-current", "page");
+  await navigator
+    .getByRole("link", { name: /Переменные, типы и вычисления/ })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Переменные, типы и вычисления",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(navigator).not.toBeVisible();
+  await page.goto("#/lesson/1");
+  await page.getByText("План пары", { exact: false }).click();
   await expect(page.getByText("78–90 мин", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "К тренажёру", exact: true }).click();
   await expect(
@@ -45,6 +66,10 @@ test("Простой маршрут от лекции через две зада
   await expect(
     page.getByRole("button", { name: "Условие задания" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Навигатор", exact: true }).click();
+  await expect(navigator).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(navigator).not.toBeVisible();
 });
 test("Чтение и задания адаптируются к компьютеру, планшету и телефону", async ({
   page,

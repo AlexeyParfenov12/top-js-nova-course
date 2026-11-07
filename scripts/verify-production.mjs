@@ -30,6 +30,17 @@ try {
   assert.equal(await phases.locator("button, a").count(), 3);
   if (process.argv[5])
     await page.screenshot({ path: process.argv[5], fullPage: false });
+  await page.getByRole("heading", { name: "Как это работает" }).waitFor();
+  await page.getByText("План пары", { exact: false }).click();
+  await page.getByText("78–90 мин", { exact: true }).waitFor();
+  await page.getByText("План пары", { exact: false }).click();
+  await page.getByRole("button", { name: "Навигатор", exact: true }).click();
+  const navigator = page.getByRole("dialog", { name: "Навигатор курса" });
+  await navigator.getByText(/2 пары сегодня и 8 пар/).waitFor();
+  assert.equal(await navigator.getByRole("link").count(), 9);
+  if (process.argv[9])
+    await page.screenshot({ path: process.argv[9], fullPage: false });
+  await navigator.getByRole("button", { name: "Закрыть навигатор" }).click();
   await phases.getByRole("button", { name: /Тренажёр.*25 мин/ }).click();
   await page.getByRole("heading", { name: "Поменяй заголовок" }).waitFor();
   assert.equal(await page.locator(".exercise").count(), 1);
@@ -132,6 +143,7 @@ try {
       },
       learningUI: true,
       classroomFlow: true,
+      courseNavigator: true,
       routeReload: true,
       monaco: true,
       grading: true,

@@ -33,6 +33,7 @@ import { checkInSandbox } from "../engine/execution";
 import { pages, projectFiles, referenceCodes } from "../projects/nova";
 import { CodeEditor, languageFor } from "../components/CodeEditor";
 import { Preview } from "../components/Preview";
+import { CourseNavigator } from "../components/CourseNavigator";
 import "../styles/workspace.css";
 
 function starterTabs(stage: string, page: NovaPage) {
@@ -316,6 +317,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
           </div>
         </div>
         <div className="workspace-tools">
+          {!free && <CourseNavigator lessonId={lesson.id} />}
           <button
             className="task-trigger"
             aria-haspopup="dialog"
