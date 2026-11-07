@@ -10,7 +10,7 @@ export interface LectureExample {
 
 export const lectureExamples: Record<
   number,
-  [LectureExample, LectureExample, LectureExample]
+  LectureExample[]
 > = {
   1: [
     {
@@ -39,6 +39,19 @@ export const lectureExamples: Record<
       ],
       caption:
         "Подключение обработчика не меняет надпись сразу. Новая надпись появляется при клике.",
+    },
+    {
+      panels: [
+        {
+          title: "Главная · #hero-title найден",
+          lines: [["code", "title → элемент h1"], ["heading", "NOVA - будущее начинается здесь"]],
+        },
+        {
+          title: "О фестивале · #hero-title отсутствует",
+          lines: [["code", "title → null"], "Блок пропущен. Заголовок «О фестивале» остаётся прежним."],
+        },
+      ],
+      caption: "Один файл на двух страницах. Команда между фигурными скобками выполняется только там, где найден нужный элемент.",
     },
   ],
   2: [

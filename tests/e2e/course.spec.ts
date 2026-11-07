@@ -33,12 +33,12 @@ test("Простой маршрут от лекции через две зада
   await expect(htmlExample.getByText(/button#hello/)).toBeVisible();
   await expect(page.locator(".lecture-more > summary").filter({
     hasText: /^Разбор кода$/,
-  })).toHaveCount(3);
+  })).toHaveCount(4);
   const question = page.locator(".concept-question").first();
   await question.locator("summary").click();
   await expect(question).toContainText("Мы поменяли только видимую надпись");
   const contents = page.getByRole("navigation", { name: "Содержание лекции" });
-  await expect(contents.getByRole("button")).toHaveCount(6);
+  await expect(contents.getByRole("button")).toHaveCount(8);
   await contents.getByRole("button", { name: /Разбор заданий/ }).click();
   await expect(
     page.getByRole("heading", { name: /Разбор заданий/ }),
@@ -85,7 +85,7 @@ test("Простой маршрут от лекции через две зада
   await expect(navigator).not.toBeVisible();
   await page.goto("#/lesson/1");
   await page.getByText("План пары", { exact: false }).click();
-  await expect(page.getByText("78–90 мин", { exact: true })).toBeVisible();
+  await expect(page.getByText("87–90 мин", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "К тренажёру", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Поменяй заголовок" }),
@@ -123,6 +123,33 @@ test("Простой маршрут от лекции через две зада
   await expect(navigator).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(navigator).not.toBeVisible();
+});
+test("Первая лекция объясняет условие и открывает оригинал с рабочими файлами", async ({ page }) => {
+  await page.goto("#/lesson/1");
+  const contents = page.getByRole("navigation", { name: "Содержание лекции" });
+  await contents.getByRole("button", { name: /Условие if/ }).click();
+  const condition = page.locator("#lecture-concept-4").locator("../..");
+  await expect(condition.locator("pre")).toContainText("if (title)");
+  await expect(condition.getByText("title → null")).toBeVisible();
+  await condition.getByText("Разбор кода", { exact: true }).click();
+  await expect(condition).toContainText("Обработчик регистрируется тогда же");
+
+  await contents.getByRole("button", { name: /Материалы с Диска/ }).click();
+  await page.getByText("Открыть материалы этой пары", { exact: true }).click();
+  const source = page.locator(".disk-lecture").filter({ hasText: "Условная конструкция if" });
+  await source.locator("summary").click();
+  await expect(source.getByRole("heading", { name: "Задачи" })).toBeVisible();
+  await expect(source.locator("pre").first()).toContainText("if (условие)");
+  const image = source.getByRole("img").first();
+  await image.scrollIntoViewIfNeeded();
+  await expect.poll(() => image.evaluate((node: HTMLImageElement) => node.naturalWidth)).toBeGreaterThan(0);
+  const archiveLink = await source.getByRole("link", { name: "Скачать лекцию и файлы в ZIP" }).getAttribute("href");
+  const response = await page.request.get(new URL(archiveLink!, page.url()).href);
+  expect(response.ok()).toBe(true);
+  const archive = await JSZip.loadAsync(await response.body());
+  expect(archive.file("Лекция.docx")).not.toBeNull();
+  expect(archive.file("Материалы/index.html")).not.toBeNull();
+  expect(archive.file("Материалы/likes.js")).not.toBeNull();
 });
 test("Лекция сравнивает одну и ту же страницу до и после добавления кода", async ({
   page,

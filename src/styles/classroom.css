@@ -985,3 +985,53 @@
     border-bottom: 1px solid #e8dff1;
   }
 }
+
+.classroom-plan-extra {
+  margin: 10px 14px 14px;
+  padding: 10px 13px;
+  border-radius: 8px;
+  background: #f1eaf8;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.lecture-source-materials > h2 {
+  scroll-margin-top: 96px;
+}
+
+.disk-lecture-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.disk-lecture-list .disk-lecture {
+  margin: 0;
+  background: white;
+}
+
+.disk-lecture-content {
+  padding: 0 12px 12px;
+}
+
+.disk-lecture-content > img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 12px 0;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+}
+
+.disk-lecture-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.disk-lecture-links a,
+.disk-source-link a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

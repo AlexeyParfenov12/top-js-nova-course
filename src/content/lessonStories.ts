@@ -3,7 +3,7 @@ interface LessonStory {
   action: string;
   observe: string;
   focus: string;
-  steps: [string, string, string];
+  steps: string[];
 }
 
 export const lessonStories: Record<number, LessonStory> = {
@@ -16,6 +16,7 @@ export const lessonStories: Record<number, LessonStory> = {
       "Начнём с кнопки, которую только что нажали. Сравни её надпись в браузере и строку с <button> в HTML. Имя hello помогает JavaScript найти именно эту кнопку.",
       "Теперь попробуем поменять надпись. Сначала сохраним найденную кнопку под именем button, затем запишем новый текст в её textContent. Что успеет увидеть console.log?",
       "Теперь перенесём ту же команду внутрь обработчика. При запуске браузер запомнит её. Проследи, в какой момент он действительно изменит надпись.",
+      "Представь, что тот же файл открыли на странице «О фестивале». Там нет #hero-title. Сравни, что вернёт поиск на двух страницах и почему условие if защищает код.",
     ],
   },
   2: {

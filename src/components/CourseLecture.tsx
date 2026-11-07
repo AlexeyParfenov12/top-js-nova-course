@@ -1,5 +1,5 @@
 import { BookOpen } from "lucide-react";
-import { Fragment, type ReactNode } from "react";
+import { Fragment, lazy, Suspense, useState, type ReactNode } from "react";
 import type { Lecture } from "../content/lectures";
 import type { Lesson } from "../content/types";
 import { assignmentPrimer } from "../content/assignmentPrimer";
@@ -9,12 +9,18 @@ import {
 } from "../content/assignmentWalkthroughs";
 import { assignmentGuides, lectureExamples } from "../content/lectureExamples";
 import { conceptGuides, type ConceptGuide } from "../content/conceptGuides";
+import { lectureTimes, sessions } from "../content/sessions";
 import { lessonStories } from "../content/lessonStories";
 import { LectureDemo } from "./LectureDemo";
 import { LectureFigure } from "./LectureFigure";
 import { SyntaxCode } from "./SyntaxCode";
 
-const conceptTimes = ["5–9", "9–13", "13–17"];
+const DiskLectures = lazy(() => import("./DiskLectures"));
+
+const conceptTimes = {
+  3: ["5–10", "10–15", "15–21"],
+  4: ["5–9", "9–13", "13–17", "17–21"],
+};
 
 export function CourseLecture({
   lecture,
@@ -28,6 +34,9 @@ export function CourseLecture({
   const walkthrough = assignmentWalkthroughs[lesson.id];
   const conceptNotes = conceptGuides[lesson.id];
   const story = lessonStories[lesson.id];
+  const session = sessions[lesson.id];
+  const [showMaterials, setShowMaterials] = useState(false);
+  const times = conceptTimes[lecture.concepts.length === 4 ? 4 : 3];
   const chapters = [
     { id: "lecture-start", title: "Демонстрация" },
     ...lecture.concepts.map((concept, index) => ({
@@ -36,6 +45,7 @@ export function CourseLecture({
     })),
     { id: "lecture-example", title: "Разбор заданий" },
     { id: "lecture-end", title: "Ошибки и итог" },
+    { id: "lecture-materials", title: "Материалы с Диска" },
   ];
 
   function goToChapter(id: string) {
@@ -63,7 +73,7 @@ export function CourseLecture({
       </nav>
       <article className="classroom-card lecture-body" aria-label="Лекция">
         <section className="lecture-opening">
-          <Chapter number={1} id="lecture-start" time="0–5">
+          <Chapter number={1} id="lecture-start" time={lectureTimes.demo}>
             {story.question}
           </Chapter>
           <p className="lecture-demo-action">
@@ -82,7 +92,7 @@ export function CourseLecture({
             <Chapter
               number={index + 2}
               id={`lecture-concept-${index + 1}`}
-              time={conceptTimes[index]}
+              time={times[index]}
             >
               {concept.title}
             </Chapter>
@@ -96,12 +106,12 @@ export function CourseLecture({
                   <li key={step}><InlineCode text={step} /></li>
                 ))}
               </ol>
-              {concept.paragraphs.map((text) => <p key={text}>{text}</p>)}
+              {concept.paragraphs.map((text) => <p key={text}><InlineCode text={text} /></p>)}
             </details>
           </section>
         ))}
         <section>
-          <Chapter number={5} id="lecture-example" time="17–27">
+          <Chapter number={chapters.length - 2} id="lecture-example" time={lectureTimes.handoff}>
             Разбор заданий
           </Chapter>
           <div className="lecture-handoff">
@@ -118,14 +128,21 @@ export function CourseLecture({
               <p>{guide.practice}</p>
             </div>
           </div>
+          <h3>Что понадобится в заданиях</h3>
+          <ol>
+            {assignmentPrimer[lesson.id].map((step) => (
+              <li key={step}><InlineCode text={step} /></li>
+            ))}
+          </ol>
+          <details className="concept-question">
+            <summary>
+              <strong>Предскажи и проверь</strong>
+              <span>{session.compare[0]}</span>
+            </summary>
+            <p>{session.compare[1]}</p>
+          </details>
           <details className="lecture-more">
             <summary>Заготовки и эталоны</summary>
-            <h3>Что понадобится в заданиях</h3>
-            <ol>
-              {assignmentPrimer[lesson.id].map((step) => (
-                <li key={step}><InlineCode text={step} /></li>
-              ))}
-            </ol>
             <h3>Две задачи тренажёра</h3>
             <div className="lecture-assignment-list">
               {lesson.exercises.map((exercise, index) => (
@@ -155,7 +172,7 @@ export function CourseLecture({
           </details>
         </section>
         <section>
-          <Chapter number={6} id="lecture-end" time="27–30">
+          <Chapter number={chapters.length - 1} id="lecture-end" time={lectureTimes.recap}>
             Ошибки и итог
           </Chapter>
           <ul>
@@ -166,6 +183,20 @@ export function CourseLecture({
           <p>
             <strong>Дальше.</strong> {lecture.bridge}
           </p>
+        </section>
+        <section className="lecture-source-materials">
+          <h2 id="lecture-materials" tabIndex={-1}>Материалы с Яндекс Диска</h2>
+          <p>Оригинальные лекции, иллюстрации, задания и файлы. Можно открыть нужный пример на занятии или продолжить работу после пары.</p>
+          <details className="lecture-more" onToggle={(event) => {
+            if (event.currentTarget.open) setShowMaterials(true);
+          }}>
+            <summary>Открыть материалы этой пары</summary>
+            {showMaterials && (
+              <Suspense fallback={<p role="status">Загружаем материалы…</p>}>
+                <DiskLectures lessonId={lesson.id} />
+              </Suspense>
+            )}
+          </details>
         </section>
       </article>
     </div>

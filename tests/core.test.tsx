@@ -6,6 +6,8 @@ import { instrument } from "../src/engine/instrument";
 import { validMessage, isResults } from "../src/engine/execution";
 import { lessons } from "../src/content/course";
 import { lectures } from "../src/content/lectures";
+import { conceptGuides } from "../src/content/conceptGuides";
+import { lessonStories } from "../src/content/lessonStories";
 import {
   assignmentGuides,
   lectureExamples,
@@ -20,10 +22,11 @@ describe("Курс и экспортируемый проект", () => {
       expect(lessons.filter((lesson) => lesson.day === day)).toHaveLength(3);
     }
     for (const lesson of lessons) {
-      expect(lectures[lesson.id].concepts).toHaveLength(3);
-      expect(lectureExamples[lesson.id]).toHaveLength(
-        lectures[lesson.id].concepts.length,
-      );
+      const conceptCount = lesson.id === 1 ? 4 : 3;
+      expect(lectures[lesson.id].concepts).toHaveLength(conceptCount);
+      expect(lectureExamples[lesson.id]).toHaveLength(conceptCount);
+      expect(conceptGuides[lesson.id]).toHaveLength(conceptCount);
+      expect(lessonStories[lesson.id].steps).toHaveLength(conceptCount);
       expect(assignmentGuides[lesson.id].trainer).toHaveLength(
         lesson.exercises.length,
       );

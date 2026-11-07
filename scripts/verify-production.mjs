@@ -30,7 +30,7 @@ try {
   assert.equal(await phases.locator("button, a").count(), 3);
   const outline = page.getByRole("navigation", { name: "Содержание лекции" });
   await outline.getByRole("button", { name: /Разбор заданий/ }).waitFor();
-  assert.equal(await outline.getByRole("button").count(), 6);
+  assert.equal(await outline.getByRole("button").count(), 8);
   if (process.argv[5])
     await page.screenshot({ path: process.argv[5], fullPage: false });
   const firstVisual = page.locator(".lecture-figure").first();
@@ -61,7 +61,7 @@ try {
   if (process.argv[12])
     await page.screenshot({ path: process.argv[12], fullPage: false });
   await page.getByText("План пары", { exact: false }).click();
-  await page.getByText("78–90 мин", { exact: true }).waitFor();
+  await page.getByText("87–90 мин", { exact: true }).waitFor();
   await page.getByText("План пары", { exact: false }).click();
   await page.getByRole("button", { name: "Навигатор", exact: true }).click();
   const navigator = page.getByRole("dialog", { name: "Навигатор курса" });

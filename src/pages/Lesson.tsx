@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { lessons } from "../content/course";
 import { lectures } from "../content/lectures";
-import { pair, pairMinutes, sessions } from "../content/sessions";
+import { lectureTimes, pair, pairMinutes, sessions } from "../content/sessions";
 import type { Lesson } from "../content/types";
 import { useProgress } from "../engine/persistence";
 import { CourseNavigator } from "../components/CourseNavigator";
@@ -107,7 +107,7 @@ function Classroom({ lesson }: { lesson: Lesson }) {
 
       {phase === "lecture" ? (
         <>
-          <PairPlan session={session} feature={lesson.feature} />
+          <PairPlan lesson={lesson} session={session} />
           <CourseLecture lecture={lecture} lesson={lesson} />
         </>
       ) : (
@@ -170,46 +170,66 @@ function Classroom({ lesson }: { lesson: Lesson }) {
 
 function PairPlan({
   session,
-  feature,
+  lesson,
 }: {
+  lesson: Lesson;
   session: (typeof sessions)[number];
-  feature: string;
 }) {
   const plan = [
     [
-      "0–5",
+      lectureTimes.demo,
       "Демонстрация",
-      `Сравните фрагмент NOVA до и после добавления кода. Сегодняшний результат — ${feature.toLowerCase()}.`,
+      `Сравните NOVA до и после добавления кода. Результат пары — ${lesson.feature.toLowerCase()}.`,
     ],
     [
-      "5–17",
-      "Три шага",
-      "Сопоставьте код и результат на каждом шаге. Откройте разбор, чтобы проследить команды, и обсудите вопрос перед переходом дальше.",
+      lectureTimes.concepts,
+      "Код и результат",
+      "Пройдите примеры по порядку. Прочитайте код, предскажите результат и проверьте себя по примеру справа.",
     ],
     [
-      "17–27",
+      lectureTimes.handoff,
       "Разбор заданий",
-      "Посмотрите заготовки из тренажёра и практики NOVA. Разберите, что уже написано, что нужно дописать и какой результат ожидается.",
+      `Сверьтесь с заготовками и обсудите вопрос «Предскажи и проверь». ${session.compare[0]}`,
     ],
     [
-      "27–30",
+      lectureTimes.recap,
       "Ошибки и итог",
       "Разберите две типичные ошибки и проговорите переход к тренажёру.",
     ],
     [
-      "30–55",
-      "Тренажёр",
-      `12 минут вместе, 10 минут на вторую задачу и 3 минуты на разбор. ${session.together}`,
+      "30–42",
+      "Тренажёр вместе",
+      `Решите «${lesson.exercises[0].title}». Запустите проверку и обсудите, почему работает каждая добавленная строка.`,
     ],
     [
-      "55–78",
+      "42–52",
+      "Тренажёр самостоятельно",
+      `Реши «${lesson.exercises[1].title}». Сравни результат до и после запуска или на двух разных наборах данных.`,
+    ],
+    [
+      "52–55",
+      "Разбор решений",
+      session.review,
+    ],
+    [
+      "55–60",
+      "Подготовка проекта",
+      "Откройте «Условие задания». Найдите готовые строки и места, где нужно дописать код.",
+    ],
+    [
+      "60–78",
       "NOVA вместе",
-      `5 минут на условие, 18 минут на первый рабочий вариант. ${session.practice[0]} ${session.practice[1]}`,
+      `${session.practice[0]} ${session.practice[1]}`,
     ],
     [
-      "78–90",
+      "78–87",
       "NOVA самостоятельно",
-      `9 минут на завершение и 3 минуты на показ результата. ${session.practice[2]} ${session.verify}`,
+      session.practice[2],
+    ],
+    [
+      "87–90",
+      "Показ результата",
+      session.verify,
     ],
   ];
   return (
@@ -228,6 +248,9 @@ function PairPlan({
           </li>
         ))}
       </ol>
+      <p className="classroom-plan-extra">
+        <strong>Если закончили раньше.</strong> {session.extra}
+      </p>
     </details>
   );
 }
