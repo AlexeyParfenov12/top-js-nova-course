@@ -37,7 +37,7 @@ function Layout() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
   return (
-    <div className="shell">
+    <div className={workspace ? "shell workspace-shell" : "shell"}>
       <header className="app-header">
         <Brand />
         <nav aria-label="Основная навигация">

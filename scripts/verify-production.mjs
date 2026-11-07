@@ -54,6 +54,8 @@ try {
   await page.locator(".monaco-editor").first().waitFor({ timeout: 30000 });
   await page.reload();
   await page.locator(".monaco-editor").first().waitFor({ timeout: 30000 });
+  await page.getByRole("button", { name: "Условие задания" }).click();
+  await page.getByRole("dialog").waitFor();
   await page.getByText("Показать эталонное решение", { exact: true }).click();
   await page
     .getByRole("button", { name: "Загрузить в редактор", exact: true })
@@ -66,6 +68,32 @@ try {
     .last()
     .waitFor();
   assert.equal(await page.locator(".test-result.failed").count(), 0);
+  await page.goto(new URL("#/workspace/4", base).href);
+  await page
+    .getByRole("heading", {
+      name: "Модальное окно с клавиатурным управлением",
+      exact: true,
+    })
+    .waitFor();
+  for (const title of ["Предпросмотр NOVA", "Образец NOVA"]) {
+    await page
+      .frameLocator(`iframe[title="${title}"]`)
+      .getByRole("heading", {
+        name: "NOVA — будущее начинается здесь",
+        exact: true,
+      })
+      .waitFor();
+  }
+  await page.locator(".monaco-editor").first().waitFor();
+  if (process.argv[6])
+    await page.screenshot({ path: process.argv[6], fullPage: false });
+  await page.getByRole("button", { name: "Условие задания" }).click();
+  await page
+    .getByRole("dialog")
+    .getByText(/подставлена готовая основа/)
+    .waitFor();
+  if (process.argv[7])
+    await page.screenshot({ path: process.argv[7], fullPage: false });
   const nova = await browser.newPage({
     viewport: { width: 1440, height: 900 },
   });
@@ -112,6 +140,8 @@ try {
       routeReload: true,
       monaco: true,
       grading: true,
+      taskDialog: true,
+      stageStarter: true,
       novaPages: 7,
       calculator: true,
       filters: true,

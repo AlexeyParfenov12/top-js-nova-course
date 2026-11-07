@@ -15,20 +15,21 @@ import JsonWorker from "monaco-editor/languages/features/json/json.worker.js?wor
   },
 };
 loader.config({ monaco });
-monaco.editor.defineTheme("top-dark", {
-  base: "vs-dark",
+monaco.editor.defineTheme("top-light", {
+  base: "vs",
   inherit: true,
   rules: [
-    { token: "comment", foreground: "849b7e" },
-    { token: "keyword", foreground: "c99ef4" },
-    { token: "string", foreground: "e5cb85" },
+    { token: "comment", foreground: "657284" },
+    { token: "keyword", foreground: "6941af" },
+    { token: "string", foreground: "176743" },
   ],
   colors: {
-    "editor.background": "#211e28",
-    "editorLineNumber.foreground": "#786b86",
-    "editor.lineHighlightBackground": "#302938",
-    "editorCursor.foreground": "#c49bf1",
-    "editor.selectionBackground": "#64417a88",
+    "editor.background": "#ffffff",
+    "editorLineNumber.foreground": "#6e7281",
+    "editorLineNumber.activeForeground": "#563ba0",
+    "editor.lineHighlightBackground": "#f4f0fa",
+    "editorCursor.foreground": "#533598",
+    "editor.selectionBackground": "#dcd0f5",
   },
 });
 export const languageFor = (file: string) =>
@@ -64,12 +65,12 @@ export function CodeEditor({
       language={languageFor(file)}
       value={value}
       onChange={(v) => onChange(v || "")}
-      theme="top-dark"
+      theme="top-light"
       loading={<div className="editor-loading">Открываем редактор…</div>}
       options={{
         readOnly,
         fontSize: 14,
-        lineHeight: 23,
+        lineHeight: 22,
         fontFamily: "Consolas, monospace",
         minimap: { enabled: false },
         automaticLayout: true,

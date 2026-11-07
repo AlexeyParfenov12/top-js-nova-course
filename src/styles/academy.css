@@ -1785,16 +1785,6 @@ body {
   border-color: #d9b5c4;
   color: #776282;
 }
-.workspace {
-  background: #241f2c;
-  min-height: calc(100vh - 76px);
-}
-.workspace-heading h1 {
-  color: #e3ccef;
-}
-.workspace-heading .text-link {
-  color: #b794cd;
-}
 @media (min-width: 1700px) {
   .academy-home {
     padding: 42px 65px;
@@ -2584,9 +2574,6 @@ body {
   }
   .review-card .eyebrow {
     font-size: 11px;
-  }
-  .workspace {
-    min-height: calc(100vh - 65px);
   }
 }
 

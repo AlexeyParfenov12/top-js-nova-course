@@ -808,8 +808,7 @@ body {
 .tabs > :last-child {
   border-radius: 0 7px 7px 0;
 }
-.tabs button.active,
-.mode-switch button.active {
+.tabs button.active {
   background: #684087;
   border-color: #a772d2;
 }
@@ -1041,290 +1040,6 @@ summary {
   font-size: 12px;
   line-height: 1.7;
 }
-.workspace {
-  padding: 22px 25px 15px;
-  height: calc(100vh - 80px);
-  display: flex;
-  flex-direction: column;
-  min-height: 650px;
-}
-.workspace-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 18px;
-}
-.workspace-heading h1 {
-  font-size: 23px;
-  margin: 10px 0 0;
-  letter-spacing: -0.4px;
-}
-.mode-switch {
-  display: flex;
-  flex-shrink: 0;
-}
-.mode-switch button {
-  border-radius: 0;
-  font-size: 10px;
-  padding: 9px 13px;
-}
-.mode-switch button:first-child {
-  border-radius: 6px 0 0 6px;
-}
-.mode-switch button:last-child {
-  border-radius: 0 6px 6px 0;
-}
-.workspace-toolbar {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  margin-bottom: 13px;
-}
-.workspace-toolbar > div {
-  display: flex;
-  gap: 7px;
-}
-.workspace-toolbar button {
-  font-size: 11px;
-  padding: 9px 12px;
-}
-.workspace-body {
-  display: flex;
-  gap: 14px;
-  min-height: 0;
-  flex: 1;
-}
-.instructions {
-  flex: 0 0 290px;
-  min-width: 220px;
-  max-width: 40%;
-  resize: horizontal;
-  overflow: auto;
-  padding: 20px;
-  background: #302736;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-}
-.instructions h2 {
-  font-size: 19px;
-  line-height: 1.4;
-  margin: 16px 0;
-}
-.instructions p,
-.instructions li {
-  font-size: 12px;
-  line-height: 1.8;
-  color: #cfbedb;
-}
-.instructions h3 {
-  font-size: 13px;
-  margin-top: 26px;
-}
-.instructions ol {
-  padding-left: 19px;
-}
-.instructions li {
-  padding-left: 5px;
-  margin-bottom: 12px;
-}
-.hint-box {
-  margin-top: 25px;
-}
-.hint-box button {
-  font-size: 11px;
-  padding: 9px 10px;
-}
-.hint-box p {
-  border-left: 2px solid #8a4dba;
-  padding: 6px 0 6px 10px;
-}
-.solution {
-  margin: 25px 0;
-}
-.solution pre {
-  font-size: 10px;
-  padding: 10px;
-}
-.solution button {
-  font-size: 11px;
-}
-.instructions .text-link {
-  font-size: 11px;
-  margin: 10px 0;
-}
-.apply-button {
-  width: 100%;
-  margin: 20px 0 10px;
-  font-size: 11px;
-  padding: 13px 10px;
-}
-.work-main {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  overflow: hidden;
-}
-.split-controls {
-  height: 33px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  background: #302737;
-  border-bottom: 1px solid var(--line);
-  gap: 10px;
-}
-.split-controls label {
-  font-size: 9px;
-  color: #ba9ecb;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.split-controls input {
-  width: 80px;
-  accent-color: #b075dc;
-}
-.split-controls .small {
-  font-size: 9px;
-}
-.code-preview {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-  background: #211c29;
-}
-.editor-pane {
-  display: flex;
-  min-width: 0;
-}
-.file-tree {
-  flex: 0 0 135px;
-  border-right: 1px solid #3f334b;
-  background: #26202e;
-  overflow: auto;
-  padding: 10px 5px;
-}
-.file-tree p {
-  color: #a594b1;
-  font-size: 9px;
-  letter-spacing: 1px;
-  padding: 0 8px;
-}
-.file-tree button {
-  display: flex;
-  justify-content: flex-start;
-  gap: 6px;
-  border: 0;
-  border-radius: 2px;
-  font-size: 9px;
-  padding: 6px 9px;
-  background: transparent;
-  width: 100%;
-  font-weight: 400;
-  white-space: nowrap;
-}
-.file-tree button.active {
-  background: #4c335f;
-}
-.js-color {
-  color: #e0cc50;
-  font-size: 9px;
-  font-weight: 700;
-}
-.css-color {
-  color: #9bbee5;
-}
-.editor-column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.file-tabs {
-  display: flex;
-  height: 38px;
-  overflow: auto;
-  background: #28212e;
-  border-bottom: 1px solid var(--line);
-}
-.file-tabs > div {
-  display: flex;
-  flex-shrink: 0;
-  border-right: 1px solid #3e3049;
-  border-top: 2px solid transparent;
-}
-.file-tabs > div.active {
-  background: #211e28;
-  border-top: 2px solid #b27ce0;
-}
-.file-tabs button {
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  font-size: 10px;
-  padding: 6px 9px;
-  font-weight: 400;
-  gap: 7px;
-  white-space: nowrap;
-}
-.editor-container {
-  flex: 1;
-  min-height: 180px;
-  position: relative;
-}
-.editor-loading {
-  padding: 30px;
-  font-size: 12px;
-  color: #bda2d1;
-}
-.editor-status {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 10px;
-  background: #372c40;
-  font-size: 8px;
-  color: #c6b2d3;
-  white-space: nowrap;
-}
-.preview-pane {
-  min-width: 0;
-  border-left: 2px solid #6e4b87;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-}
-.preview-toolbar {
-  height: 38px;
-  background: #302737;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 0 12px;
-  color: #d5bedf;
-  font-size: 10px;
-}
-.preview-toolbar select {
-  background: transparent;
-  border: 0;
-  max-width: 145px;
-  color: #dec9e8;
-  font-size: 10px;
-  outline: none;
-}
-.preview-toolbar option {
-  color: #21172b;
-  background: #e8daed;
-}
-.preview-local {
-  margin-left: auto;
-  font-size: 8px;
-  color: #a38eb2;
-}
 .nova-frame {
   width: 100%;
   height: 100%;
@@ -1339,90 +1054,6 @@ summary {
   color: #772542;
   background: #fff4f6;
   font-size: 12px;
-}
-.console-panel {
-  height: 165px;
-  min-height: 90px;
-  max-height: 45%;
-  resize: vertical;
-  overflow: auto;
-  border-top: 1px solid var(--line);
-  background: #251e2d;
-  display: flex;
-  flex-direction: column;
-}
-.console-tabs {
-  display: flex;
-  gap: 0;
-  background: #302737;
-  flex-shrink: 0;
-}
-.console-tabs button {
-  font-size: 10px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  padding: 10px 15px;
-  background: transparent;
-}
-.console-tabs button.active {
-  border-bottom-color: #ba83e4;
-  color: #e2c8f5;
-}
-.console-content {
-  padding: 10px 16px;
-  overflow: auto;
-  flex: 1;
-}
-.console-content > p {
-  font-size: 11px;
-}
-.test-result {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 11px;
-  line-height: 1.6;
-  padding: 5px 0;
-}
-.test-result svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.test-result.passed {
-  color: #a1dfb8;
-}
-.test-result.failed {
-  color: #ffabbc;
-}
-.test-result small {
-  display: block;
-  color: #d0b8c3;
-  font-size: 10px;
-}
-.log-line {
-  font-family: Consolas, monospace;
-  font-size: 11px;
-  padding: 4px;
-  color: #dcc8ec;
-}
-.workspace-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 2px 0;
-  font-size: 10px;
-  color: #c7b3d5;
-  min-height: 36px;
-}
-.workspace-bottom button,
-.workspace-bottom .button {
-  padding: 7px 10px;
-  font-size: 10px;
-}
-.workspace-bottom > span {
-  flex: 1;
 }
 .project-title-row {
   display: flex;
@@ -1702,9 +1333,6 @@ textarea:focus-visible {
   .hero .nova-poster {
     max-height: 440px;
   }
-  .workspace .instructions {
-    flex-basis: 340px;
-  }
   .lesson-main {
     padding: 45px 65px;
   }
@@ -1776,28 +1404,6 @@ textarea:focus-visible {
   }
   .lesson-main {
     padding: 30px;
-  }
-  .workspace {
-    padding: 18px;
-  }
-  .instructions {
-    flex-basis: 245px;
-    min-width: 200px;
-    padding: 16px;
-  }
-  .file-tree {
-    flex-basis: 112px;
-  }
-  .file-tree button {
-    font-size: 8px;
-    padding-left: 5px;
-  }
-  .workspace-toolbar button {
-    font-size: 10px;
-    padding: 9px;
-  }
-  .workspace-toolbar > div {
-    gap: 5px;
   }
   .project-overview {
     gap: 20px;
@@ -1909,40 +1515,6 @@ textarea:focus-visible {
   .lesson-tabs .button {
     font-size: 11px;
     padding: 11px;
-  }
-  .workspace {
-    height: auto;
-    min-height: calc(100vh - 72px);
-  }
-  .workspace-body {
-    min-height: 650px;
-  }
-  .workspace-heading h1 {
-    font-size: 19px;
-  }
-  .workspace-toolbar button {
-    font-size: 9px;
-    padding: 8px;
-  }
-  .workspace-toolbar button svg {
-    width: 12px;
-  }
-  .instructions {
-    flex-basis: 220px;
-    min-width: 180px;
-    padding: 13px;
-  }
-  .file-tree {
-    display: none;
-  }
-  .work-main {
-    min-height: 600px;
-  }
-  .code-preview {
-    min-height: 420px;
-  }
-  .workspace-toolbar {
-    flex-wrap: wrap;
   }
   .project-overview {
     flex-wrap: wrap;
@@ -2150,75 +1722,6 @@ textarea:focus-visible {
   .lesson-footer .text-link {
     font-size: 10px;
   }
-  .workspace {
-    padding: 16px 10px;
-    height: auto;
-  }
-  .workspace-heading {
-    flex-wrap: wrap;
-  }
-  .workspace-heading h1 {
-    font-size: 20px;
-  }
-  .workspace-body {
-    flex-direction: column;
-    min-height: 0;
-  }
-  .instructions {
-    max-width: none;
-    max-height: 450px;
-    resize: vertical;
-    flex: auto;
-    min-height: 200px;
-  }
-  .work-main {
-    min-height: 780px;
-  }
-  .code-preview {
-    flex-direction: column;
-    min-height: 650px;
-  }
-  .editor-pane,
-  .preview-pane {
-    width: 100% !important;
-    min-height: 330px;
-  }
-  .preview-pane {
-    border-left: 0;
-    border-top: 2px solid #6e4b87;
-  }
-  .editor-container {
-    min-height: 250px;
-  }
-  .split-controls input {
-    display: none;
-  }
-  .split-controls label {
-    font-size: 0;
-  }
-  .workspace-toolbar {
-    gap: 8px;
-  }
-  .workspace-toolbar > div {
-    flex-wrap: wrap;
-  }
-  .workspace-toolbar button {
-    font-size: 9px;
-    gap: 5px;
-    padding: 8px;
-  }
-  .workspace-bottom {
-    flex-wrap: wrap;
-    font-size: 10px;
-    line-height: 1.7;
-  }
-  .workspace-bottom > span {
-    flex-basis: 100%;
-  }
-  .console-panel {
-    max-height: none;
-    min-height: 150px;
-  }
   .project-title-row h1 {
     font-size: 30px;
   }
@@ -2374,24 +1877,10 @@ textarea:focus-visible {
   gap: 4px;
   white-space: nowrap;
 }
-.workspace-toolbar .nova-site-button {
-  font-size: 11px;
-  padding: 9px 12px;
-  background: #54326c;
-  border-color: #8659a8;
-  white-space: nowrap;
-}
-.workspace-toolbar .nova-site-button:hover {
-  background: #73468f;
-}
 @media (max-width: 1000px) {
   .app-header nav a.nova-external-link {
     font-size: 10px;
     padding: 9px;
-  }
-  .workspace-toolbar .nova-site-button {
-    font-size: 9px;
-    padding: 8px;
   }
 }
 @media (max-width: 700px) {

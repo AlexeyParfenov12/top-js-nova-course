@@ -256,11 +256,26 @@ test("Путь студента: редактор → проверка → 9 э�
   await expect(page.locator(".test-result.failed").first()).toBeVisible();
   for (let n = 1; n <= 9; n++) {
     if (n > 1) await page.goto("#/workspace/" + n);
+    if (n === 2)
+      await expect(
+        page.frameLocator('iframe[title="Предпросмотр NOVA"]').locator("body"),
+      ).toHaveAttribute("data-student", "saved");
+    await page.getByRole("button", { name: "Условие задания" }).click();
     await page.getByText("Показать эталонное решение", { exact: true }).click();
     await page
       .getByRole("button", { name: "Загрузить в редактор", exact: true })
       .click();
     await expect(page.locator(".monaco-editor").first()).toBeVisible();
+    if (n === 1) {
+      const editor = page.getByRole("textbox", {
+        name: "Редактор кода lesson-1/scripts/stage-1.js",
+        exact: true,
+      });
+      await editor.press("ControlOrMeta+End");
+      await page.keyboard.insertText(
+        "\n document.body.dataset.student = 'saved';",
+      );
+    }
     await page
       .getByRole("button", { name: "Проверить решение", exact: true })
       .click();
@@ -333,6 +348,59 @@ test("Путь студента: редактор → проверка → 9 э�
     fullPage: true,
   });
   expect(errors).toEqual([]);
+});
+test("Задание второго дня открывается с готовой основой и сохраняет только свой зачёт", async ({
+  page,
+}) => {
+  await page.goto("#/workspace/4");
+  const result = page.frameLocator('iframe[title="Предпросмотр NOVA"]');
+  const example = page.frameLocator('iframe[title="Образец NOVA"]');
+  await expect(result.locator("#hero-title")).toHaveText(
+    "NOVA — будущее начинается здесь",
+  );
+  await expect(example.locator("#hero-title")).toHaveText(
+    "NOVA — будущее начинается здесь",
+  );
+  const trigger = page.getByRole("button", { name: "Условие задания" });
+  const dialog = page.getByRole("dialog", { name: "Функции и события" });
+  await expect(dialog).not.toBeVisible();
+  await trigger.click();
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText(/подставлена готовая основа/)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await dialog.getByText("Показать эталонное решение", { exact: true }).click();
+  await dialog.getByRole("button", { name: "Загрузить в редактор" }).click();
+  await expect(dialog).not.toBeVisible();
+  await page
+    .getByRole("button", { name: "Проверить решение", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Добавить в мой проект" }).click();
+  await expect(
+    page.getByText("Этап 4 добавлен в NOVA.", { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByText("Сохранено на устройстве").first()).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("Этап добавлен", { exact: true })).toBeVisible();
+  await expect(result.locator("#hero-title")).toHaveText(
+    "NOVA — будущее начинается здесь",
+  );
+  await page.goto("#/project");
+  await expect(page.getByRole("progressbar")).toHaveAttribute(
+    "aria-valuenow",
+    "11",
+  );
+  await page.setViewportSize({ width: 390, height: 740 });
+  await page.goto("#/workspace/4");
+  await trigger.click();
+  await expect(
+    dialog.getByRole("button", { name: "К редактору" }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
 });
 test("Теория, тренажёр, перенос JSON и отказ от повреждённого импорта", async ({
   page,

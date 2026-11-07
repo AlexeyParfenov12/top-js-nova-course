@@ -1,8 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   AlertCircle,
   ArrowLeft,
+  ArrowLeftRight,
+  BookOpen,
   Check,
   CheckCheck,
   ChevronRight,
@@ -10,7 +18,7 @@ import {
   FileCode2,
   Folder,
   Lightbulb,
-  PanelLeftClose,
+  PanelsTopLeft,
   Play,
   RotateCcw,
   Terminal,
@@ -21,36 +29,76 @@ import { lessons } from "../content/course";
 import type { NovaPage, TestResult } from "../content/types";
 import { useProgress } from "../engine/persistence";
 import { checkInSandbox } from "../engine/execution";
-import { pages, projectFiles } from "../projects/nova";
-import { CodeEditor } from "../components/CodeEditor";
+import { pages, projectFiles, referenceCodes } from "../projects/nova";
+import { CodeEditor, languageFor } from "../components/CodeEditor";
 import { Preview } from "../components/Preview";
+import "../styles/workspace.css";
+
+function starterTabs(stage: string, page: NovaPage) {
+  return [stage, `${page}.html`, "styles.css"];
+}
+
 export function Workspace({ free = false }: { free?: boolean }) {
   const { id } = useParams();
   const lesson = lessons[(Number(id) || 1) - 1];
   const { progress, update, status } = useProgress();
   const stage = `scripts/stage-${lesson?.id || 1}.js`;
   const [file, setFile] = useState(stage);
-  const [openFiles, setOpenFiles] = useState([stage]);
+  const [openFiles, setOpenFiles] = useState(() =>
+    starterTabs(stage, lesson?.page || "index"),
+  );
   const [page, setPage] = useState<NovaPage>(lesson?.page || "index");
-  const [mode, setMode] = useState("learn");
-  const [showInstructions, setShowInstructions] = useState(!free);
-  const [showTree, setShowTree] = useState(true);
+  const taskDialog = useRef<HTMLDialogElement>(null);
+  const [showTree, setShowTree] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [showConsole, setShowConsole] = useState(true);
-  const [ratio, setRatio] = useState(54);
+  const [ratio, setRatio] = useState(52);
+  const [zoom, setZoom] = useState(80);
   const [hint, setHint] = useState(0);
-  const [consoleTab, setConsoleTab] = useState("tests");
+  const [consoleTab, setConsoleTab] = useState("reference");
   const [logs, setLogs] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [results, setResults] = useState<TestResult[]>([]);
   const [busy, setBusy] = useState(false);
   const [verified, setVerified] = useState("");
   const [notice, setNotice] = useState("");
-  const currentCode = progress.drafts[lesson?.id] ?? lesson?.starter ?? "";
+  const lessonId = lesson?.id ?? 1;
+  const savedCode = progress.applied.includes(lessonId)
+    ? progress.codes[lessonId]
+    : undefined;
+  const currentCode =
+    progress.drafts[lessonId] ?? savedCode ?? lesson?.starter ?? "";
+  const starterCodes = useMemo(() => {
+    if (free) return {};
+    return Object.fromEntries(
+      lessons
+        .slice(0, lessonId - 1)
+        .filter(
+          ({ id }) =>
+            progress.codes[id] === undefined &&
+            progress.files[`scripts/stage-${id}.js`] === undefined,
+        )
+        .map(({ id }) => [id, referenceCodes[id]]),
+    );
+  }, [free, lessonId, progress.codes, progress.files]);
+  const starterCount = Object.keys(starterCodes).length;
+  const comparisonCodes = useMemo(
+    () =>
+      free
+        ? referenceCodes
+        : Object.fromEntries(
+            lessons
+              .slice(0, lessonId)
+              .map(({ id }) => [id, referenceCodes[id]]),
+          ),
+    [free, lessonId],
+  );
   const codeSet = useMemo(
     () =>
-      free ? progress.codes : { ...progress.codes, [lesson.id]: currentCode },
-    [free, progress.codes, currentCode, lesson?.id],
+      free
+        ? progress.codes
+        : { ...starterCodes, ...progress.codes, [lessonId]: currentCode },
+    [free, progress.codes, starterCodes, currentCode, lessonId],
   );
   const fileSet = useMemo(() => {
     const next = { ...progress.files };
@@ -72,12 +120,14 @@ export function Workspace({ free = false }: { free?: boolean }) {
     if (!free && lesson) {
       update((p) => ({ ...p, current: lesson.id }));
       setFile(stage);
-      setOpenFiles([stage]);
+      setOpenFiles(starterTabs(stage, lesson.page));
       setPage(lesson.page);
       setHint(0);
       setNotice("");
       setResults([]);
       setVerified("");
+      setConsoleTab("reference");
+      taskDialog.current?.close();
       setRun({
         codes: codeSet,
         files: fileSet,
@@ -109,9 +159,20 @@ export function Workspace({ free = false }: { free?: boolean }) {
     setLogs([]);
     setRun({ codes: codeSet, files: fileSet, page, key: Date.now() });
   }
+  function navigatePreview(next: NovaPage) {
+    setPage(next);
+    setRun((previous) => ({ ...previous, page: next, key: previous.key + 1 }));
+  }
+  const stagesInWorkspace = lessons.filter(
+    ({ id }) =>
+      id in codeSet ||
+      progress.applied.includes(id) ||
+      (!free && id < lessonId && `scripts/stage-${id}.js` in fileSet),
+  );
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        if (e.defaultPrevented || busy || taskDialog.current?.open) return;
         e.preventDefault();
         execute();
       }
@@ -122,29 +183,31 @@ export function Workspace({ free = false }: { free?: boolean }) {
   async function check() {
     if (busy) return;
     setBusy(true);
-    setNotice("Проверяем реальное поведение в отдельном окне…");
+    setNotice("Проверяем работу сайта…");
     setErrors([]);
     const snapshot = signature;
     const checks: TestResult[] = free
       ? []
       : await checkInSandbox(lesson.page, codeSet, fileSet, lesson.tests);
     if (free) {
-      for (const stageId of progress.applied) {
-        const l = lessons[stageId - 1];
+      for (const l of stagesInWorkspace) {
         const r = await checkInSandbox(l.page, codeSet, fileSet, l.tests);
-        checks.push(...r.map((x) => ({ ...x, name: `${stageId}. ${x.name}` })));
+        checks.push(...r.map((x) => ({ ...x, name: `${l.id}. ${x.name}` })));
       }
     }
     setResults(checks);
     setConsoleTab("tests");
     setShowConsole(true);
+    setShowPreview(true);
     const passed = checks.length > 0 && checks.every((r) => r.passed);
     setVerified(passed ? snapshot : "");
     if (!free)
       update((p) => ({ ...p, results: { ...p.results, [lesson.id]: checks } }));
     setNotice(
       passed
-        ? "Все сценарии пройдены. Можно добавить результат в проект."
+        ? free
+          ? "Все сценарии пройдены."
+          : "Все сценарии пройдены. Можно добавить результат в проект."
         : free && checks.length === 0
           ? "Сначала добавьте хотя бы один этап в учебной практике."
           : "Есть ошибки. Изучите результаты и попробуйте подсказку.",
@@ -154,31 +217,16 @@ export function Workspace({ free = false }: { free?: boolean }) {
   }
   async function apply() {
     if (busy || verified !== signature) return;
-    if (
-      !progress.applied.includes(lesson.id) &&
-      Array.from({ length: lesson.id - 1 }, (_, i) => i + 1).some(
-        (n) => !progress.applied.includes(n),
-      )
-    ) {
-      setNotice(
-        "Сначала добавьте предыдущие этапы: один проект развивается последовательно.",
-      );
-      return;
-    }
     setBusy(true);
     const checks: TestResult[] = [];
-    const stages = Array.from(new Set([...progress.applied, lesson.id])).sort(
-      (a, b) => a - b,
-    );
-    for (const n of stages) {
-      const l = lessons[n - 1];
+    for (const l of stagesInWorkspace) {
       const r = await checkInSandbox(l.page, codeSet, fileSet, l.tests);
-      checks.push(...r.map((x) => ({ ...x, name: `Этап ${n}: ${x.name}` })));
+      checks.push(...r.map((x) => ({ ...x, name: `Этап ${l.id}: ${x.name}` })));
     }
     setResults(checks);
     if (checks.every((r) => r.passed)) {
       update((p) => {
-        const codes = { ...p.codes, [lesson.id]: currentCode };
+        const codes = { ...starterCodes, ...p.codes, [lesson.id]: currentCode };
         const nextFiles = { ...p.files };
         delete nextFiles[stage];
         return {
@@ -242,241 +290,209 @@ export function Workspace({ free = false }: { free?: boolean }) {
         <Link to="/curriculum">К программе</Link>
       </main>
     );
+  const showRightPane = showPreview || showConsole;
+  const fileLanguage = languageFor(file);
   return (
-    <main className={"workspace " + (mode === "dev" ? "development" : "")}>
-      <div className="workspace-heading">
+    <main className="workspace">
+      <header className="workspace-heading">
         <div>
           <Link
-            className="text-link small"
+            className="workspace-back"
             to={free ? "/project" : `/lesson/${lesson.id}`}
           >
             <ArrowLeft size={14} />
             {free
-              ? "Мой проект NOVA"
-              : `День ${lesson.day} / Пара ${lesson.id}`}
+              ? "Мой проект"
+              : `День ${lesson.day} · Задание ${lesson.id} из ${lessons.length}`}
           </Link>
-          <h1>{free ? "Редактор проекта NOVA" : lesson.feature}</h1>
+          <div className="workspace-title">
+            <h1>{free ? "Редактор проекта NOVA" : lesson.feature}</h1>
+            {!free && progress.applied.includes(lesson.id) && (
+              <span className="stage-added">
+                <Check size={14} /> Этап добавлен
+              </span>
+            )}
+          </div>
         </div>
-        <div className="mode-switch">
+        <div className="workspace-tools">
           <button
-            className={mode === "learn" ? "active" : ""}
-            onClick={() => {
-              setMode("learn");
-              setShowInstructions(!free);
-            }}
+            className="task-trigger"
+            aria-haspopup="dialog"
+            onClick={() => taskDialog.current?.showModal()}
           >
-            Обучение
+            <BookOpen size={17} />
+            {free ? "Как работать" : "Условие задания"}
           </button>
           <button
-            className={mode === "dev" ? "active" : ""}
-            onClick={() => {
-              setMode("dev");
-              setShowInstructions(false);
-            }}
+            aria-pressed={showPreview}
+            onClick={() => setShowPreview(!showPreview)}
           >
-            Разработка
+            <Eye size={17} /> <span>Предпросмотр</span>
           </button>
-        </div>
-      </div>
-      <div className="workspace-toolbar">
-        <div>
-          <a
-            className="button nova-site-button"
-            href={import.meta.env.BASE_URL + "nova/index.html"}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Открыть сайт NOVA ↗
-          </a>
           <button
-            title="Условие задания"
-            onClick={() => setShowInstructions(!showInstructions)}
+            aria-pressed={showConsole}
+            onClick={() => setShowConsole(!showConsole)}
           >
-            <PanelLeftClose size={16} />
-            Условие
-          </button>
-          <button title="Дерево файлов" onClick={() => setShowTree(!showTree)}>
-            <Folder size={16} />
-            Файлы
-          </button>
-          <button onClick={() => setShowPreview(!showPreview)}>
-            <Eye size={16} />
-            Сайт
-          </button>
-          <button onClick={() => setShowConsole(!showConsole)}>
-            <Terminal size={16} />
-            Вывод
+            <PanelsTopLeft size={16} /> <span>Сравнение и вывод</span>
           </button>
         </div>
-        <div>
-          <button onClick={reset} disabled={busy}>
-            <RotateCcw size={15} />
-            Сбросить
-          </button>
-          <button onClick={execute} disabled={busy}>
-            <Play size={15} />
-            Запустить
-          </button>
-          <button className="primary" disabled={busy} onClick={check}>
-            <CheckCheck size={16} />
-            {busy
-              ? "Проверяем…"
-              : free
-                ? "Проверить проект"
-                : "Проверить решение"}
-          </button>
-        </div>
-      </div>
-      <div className="workspace-body">
-        {showInstructions && (
-          <aside className="instructions">
-            <p className="eyebrow">
-              {free ? "СВОБОДНАЯ РАБОТА" : "ЗАДАНИЕ " + lesson.id + " / 9"}
-            </p>
-            <h2>{free ? "Твой NOVA" : lesson.title}</h2>
+      </header>
+      <dialog
+        ref={taskDialog}
+        className="task-dialog"
+        aria-labelledby="task-dialog-title"
+      >
+        <div className="task-dialog-heading">
+          <div>
             <p>
               {free
-                ? "Здесь можно изменять все HTML, CSS и JavaScript-файлы основного проекта. После изменений запусти предпросмотр и проверь регрессии. Сохрани контрольную точку на странице проекта."
-                : lesson.task}
+                ? "ПРОЕКТ NOVA"
+                : `ПРАКТИКА NOVA · ЗАДАНИЕ ${lesson.id} ИЗ ${lessons.length}`}
             </p>
-            {!free && (
-              <>
-                <h3>Что должно работать</h3>
+            <h2 id="task-dialog-title">
+              {free ? "Как работать с проектом" : lesson.title}
+            </h2>
+          </div>
+          <button
+            className="icon-button"
+            aria-label="Закрыть условие"
+            onClick={() => taskDialog.current?.close()}
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className="task-dialog-content">
+          <p>
+            {free
+              ? "Здесь можно изменять HTML, CSS и JavaScript проекта. Запускай предпросмотр, проверяй работу сайта и сохраняй контрольные точки на странице проекта."
+              : lesson.task}
+          </p>
+          {!free && (
+            <>
+              {lesson.id > 1 && (
+                <p className="starter-note">
+                  {starterCount > 0
+                    ? "В редакторе уже есть код предыдущих этапов. Там, где своего кода пока нет, подставлена готовая основа."
+                    : "В редакторе уже есть код предыдущих этапов из твоего проекта."}
+                </p>
+              )}
+              <h3>Что должно работать</h3>
+              <ol>
+                {lesson.requirements.map((requirement) => (
+                  <li key={requirement}>{requirement}</li>
+                ))}
+              </ol>
+              <details className="task-disclosure" key={`plan-${lesson.id}`}>
+                <summary>План работы</summary>
                 <ol>
-                  {lesson.requirements.map((r) => (
-                    <li key={r}>{r}</li>
+                  {lesson.guide.milestones.map((milestone) => (
+                    <li key={milestone}>{milestone}</li>
                   ))}
                 </ol>
-                <div className="hint-box">
-                  <button
-                    onClick={() => setHint((n) => Math.min(n + 1, 3))}
-                    disabled={hint === 3}
-                  >
-                    <Lightbulb size={16} />
-                    Подсказка {Math.min(hint + 1, 3)}/3
-                  </button>
-                  {lesson.hints.slice(0, hint).map((h, i) => (
-                    <p key={i}>
-                      <b>{i + 1}.</b> {h}
-                    </p>
-                  ))}
-                </div>
-                <details className="solution" key={lesson.id}>
-                  <summary>Показать эталонное решение</summary>
-                  <p>
-                    Сначала попробуй решить самостоятельно. Эталон можно
-                    прочитать или загрузить в черновик.
+              </details>
+              <div className="task-hints">
+                <button
+                  onClick={() =>
+                    setHint((n) => Math.min(n + 1, lesson.hints.length))
+                  }
+                  disabled={hint === lesson.hints.length}
+                >
+                  <Lightbulb size={16} /> Подсказка{" "}
+                  {Math.min(hint + 1, lesson.hints.length)}/
+                  {lesson.hints.length}
+                </button>
+                {lesson.hints.slice(0, hint).map((text, i) => (
+                  <p key={text}>
+                    <b>{i + 1}.</b> {text}
                   </p>
-                  <pre>{lesson.solution}</pre>
-                  <button
-                    onClick={() => {
-                      update((p) => ({
-                        ...p,
-                        drafts: { ...p.drafts, [lesson.id]: lesson.solution },
-                      }));
-                      setVerified("");
-                      open(stage);
-                    }}
-                  >
-                    Загрузить в редактор
-                  </button>
-                </details>
-                <Link className="text-link" to={`/lesson/${lesson.id}`}>
-                  Вернуться к теории <ChevronRight size={14} />
-                </Link>
-                {verified === signature && (
-                  <button
-                    className="primary apply-button"
-                    onClick={apply}
-                    disabled={busy}
-                  >
-                    <Check size={16} />
-                    Добавить в мой проект
-                  </button>
-                )}
-                {progress.applied.includes(lesson.id) && (
-                  <div className="success">
-                    <Check size={17} />
-                    Этап добавлен <Link to="/project">Посмотреть ↗</Link>
-                  </div>
-                )}
-              </>
-            )}
-          </aside>
-        )}
-        <div className="work-main">
-          <div className="split-controls">
-            {showPreview && (
-              <label>
-                Редактор{" "}
-                <input
-                  aria-label="Ширина редактора"
-                  type="range"
-                  min="35"
-                  max="75"
-                  value={ratio}
-                  onChange={(e) => setRatio(Number(e.target.value))}
-                />{" "}
-                Предпросмотр
-              </label>
-            )}
-            <span className="muted small">
-              {readOnly ? "Файл доступен для чтения" : status}
-            </span>
-          </div>
-          <div className="code-preview">
-            <div
-              className="editor-pane"
-              style={{ width: showPreview ? ratio + "%" : "100%" }}
-            >
-              {showTree && (
-                <div className="file-tree">
-                  <p>NOVA</p>
-                  {pages.map((p) => (
-                    <button
-                      key={p.id}
-                      className={file === p.id + ".html" ? "active" : ""}
-                      onClick={() => open(p.id + ".html")}
-                    >
-                      <FileCode2 size={12} />
-                      {p.id}.html
-                    </button>
-                  ))}
-                  <button
-                    className={file === "styles.css" ? "active" : ""}
-                    onClick={() => open("styles.css")}
-                  >
-                    <span className="css-color">#</span>styles.css
-                  </button>
-                  <button onClick={() => open("data.js")}>
-                    <span className="js-color">JS</span>data.js
-                  </button>
-                  <p>⌄ scripts</p>
-                  {lessons.map((l) => (
-                    <button
-                      className={
-                        file === `scripts/stage-${l.id}.js` ? "active" : ""
-                      }
-                      onClick={() => open(`scripts/stage-${l.id}.js`)}
-                      key={l.id}
-                    >
-                      <span className="js-color">JS</span>stage-{l.id}.js
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="editor-column">
-                <div className="file-tabs">
+                ))}
+              </div>
+              <details
+                className="task-disclosure"
+                key={`solution-${lesson.id}`}
+              >
+                <summary>Показать эталонное решение</summary>
+                <p>
+                  Можно прочитать решение или загрузить его в черновик текущего
+                  задания.
+                </p>
+                <pre>
+                  <code>{lesson.solution}</code>
+                </pre>
+                <button
+                  disabled={busy}
+                  onClick={() => {
+                    update((p) => ({
+                      ...p,
+                      drafts: { ...p.drafts, [lesson.id]: lesson.solution },
+                    }));
+                    setVerified("");
+                    setResults([]);
+                    open(stage);
+                    taskDialog.current?.close();
+                  }}
+                >
+                  Загрузить в редактор
+                </button>
+              </details>
+            </>
+          )}
+        </div>
+        <div className="task-dialog-footer">
+          {!free && (
+            <Link className="workspace-back" to={`/lesson/${lesson.id}`}>
+              К теории <ChevronRight size={15} />
+            </Link>
+          )}
+          <button
+            className="primary"
+            onClick={() => taskDialog.current?.close()}
+          >
+            К редактору
+          </button>
+        </div>
+      </dialog>
+      <div className="work-main">
+        <div className="code-preview">
+          <section
+            aria-label="Файлы и код"
+            className="editor-pane"
+            style={{ width: showRightPane ? ratio + "%" : "100%" }}
+          >
+            <div className="editor-column">
+              <div className="editor-file-bar">
+                <button
+                  className="icon-button"
+                  aria-label="Файлы"
+                  title="Дерево файлов"
+                  aria-pressed={showTree}
+                  onClick={() => setShowTree(!showTree)}
+                >
+                  <Folder size={17} />
+                </button>
+                <div className="file-tabs" aria-label="Открытые файлы">
                   {openFiles.map((name) => (
                     <div className={name === file ? "active" : ""} key={name}>
-                      <button onClick={() => setFile(name)}>
-                        <span className="js-color">
-                          {name.endsWith(".js") ? "JS" : "⌘"}
+                      <button
+                        aria-pressed={name === file}
+                        onClick={() => setFile(name)}
+                      >
+                        <span
+                          className="file-type"
+                          data-type={languageFor(name)}
+                          aria-hidden="true"
+                        >
+                          {name.endsWith(".js")
+                            ? "JS"
+                            : name.endsWith(".css")
+                              ? "#"
+                              : "<>"}
                         </span>
                         {name.split("/").pop()}
                       </button>
                       {openFiles.length > 1 && (
                         <button
+                          className="close-file"
                           aria-label={`Закрыть ${name}`}
                           onClick={() => {
                             const next = openFiles.filter((f) => f !== name);
@@ -484,12 +500,66 @@ export function Workspace({ free = false }: { free?: boolean }) {
                             if (file === name) setFile(next[0]);
                           }}
                         >
-                          <X size={12} />
+                          <X size={13} />
                         </button>
                       )}
                     </div>
                   ))}
                 </div>
+                {showRightPane && (
+                  <label className="split-control" title="Ширина редактора">
+                    <ArrowLeftRight size={15} aria-hidden="true" />
+                    <input
+                      aria-label="Ширина редактора"
+                      type="range"
+                      min="35"
+                      max="70"
+                      value={ratio}
+                      onChange={(event) => setRatio(Number(event.target.value))}
+                    />
+                  </label>
+                )}
+              </div>
+              <div className="editor-content">
+                {showTree && (
+                  <div className="file-tree">
+                    <p>ФАЙЛЫ NOVA</p>
+                    {[
+                      ...pages.map((p) => p.id + ".html"),
+                      "styles.css",
+                      "data.js",
+                    ].map((name) => (
+                      <button
+                        key={name}
+                        aria-pressed={file === name}
+                        onClick={() => open(name)}
+                      >
+                        <FileCode2 size={14} />
+                        {name}
+                      </button>
+                    ))}
+                    <p>SCRIPTS</p>
+                    {lessons.map((l) => {
+                      const name = `scripts/stage-${l.id}.js`;
+                      return (
+                        <button
+                          key={name}
+                          aria-pressed={file === name}
+                          onClick={() => open(name)}
+                        >
+                          <span
+                            className="file-type"
+                            data-type="javascript"
+                            aria-hidden="true"
+                          >
+                            JS
+                          </span>
+                          stage-{l.id}.js
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
                 <div className="editor-container">
                   <CodeEditor
                     file={(free ? "project/" : `lesson-${lesson.id}/`) + file}
@@ -498,145 +568,212 @@ export function Workspace({ free = false }: { free?: boolean }) {
                     onChange={change}
                   />
                 </div>
-                <div className="editor-status">
-                  <span>
-                    {readOnly ? "Только чтение" : "JavaScript / NOVA"}
-                  </span>
-                  <span>UTF-8 · LF · Ctrl+Enter</span>
-                </div>
+              </div>
+              <div className="editor-status">
+                <span>{readOnly ? "Только чтение" : status}</span>
+                <span>{fileLanguage.toUpperCase()} · Ctrl+Enter</span>
               </div>
             </div>
-            {showPreview && (
-              <div
-                className="preview-pane"
-                style={{ width: 100 - ratio + "%" }}
-              >
-                <div className="preview-toolbar">
-                  <Eye size={14} />
-                  <select
-                    aria-label="Страница предпросмотра"
-                    value={page}
-                    onChange={(e) => {
-                      const next = e.target.value as NovaPage;
-                      setPage(next);
-                      setRun({
-                        codes: codeSet,
-                        files: fileSet,
-                        page: next,
-                        key: Date.now(),
-                      });
-                    }}
-                  >
-                    {pages.map((p) => (
-                      <option value={p.id} key={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="preview-local">nova.local</span>
-                </div>
-                <Preview
-                  key={run.key}
-                  page={run.page}
-                  codes={run.codes}
-                  files={run.files}
-                  onLog={(s) => setLogs((x) => [...x, s].slice(-100))}
-                  onError={(s) => setErrors((x) => [...x, s].slice(-30))}
-                  onNavigate={(next) => {
+          </section>
+          {showRightPane && (
+            <section
+              aria-label="Предпросмотр и сравнение"
+              className="preview-pane"
+              style={
+                {
+                  width: 100 - ratio + "%",
+                  "--preview-scale": zoom / 100,
+                } as CSSProperties
+              }
+            >
+              <div className="preview-toolbar">
+                <strong>
+                  <Eye size={16} />{" "}
+                  {showPreview ? "Твой результат" : "Сравнение и вывод"}
+                </strong>
+                <select
+                  aria-label="Страница предпросмотра"
+                  value={page}
+                  onChange={(event) => {
+                    const next = event.target.value as NovaPage;
                     setPage(next);
-                    setRun({ ...run, page: next, key: Date.now() });
+                    setRun({
+                      codes: codeSet,
+                      files: fileSet,
+                      page: next,
+                      key: Date.now(),
+                    });
                   }}
-                />
+                >
+                  {pages.map((p) => (
+                    <option value={p.id} key={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  aria-label="Масштаб предпросмотра и образца"
+                  value={zoom}
+                  onChange={(event) => setZoom(Number(event.target.value))}
+                >
+                  {[60, 80, 100].map((percent) => (
+                    <option key={percent} value={percent}>
+                      {percent}%
+                    </option>
+                  ))}
+                </select>
+                <a
+                  className="nova-site-button"
+                  href={import.meta.env.BASE_URL + "nova/index.html"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Открыть сайт NOVA ↗
+                </a>
               </div>
-            )}
-          </div>
-          {showConsole && (
-            <section className="console-panel">
-              <div className="console-tabs">
-                {[
-                  ["tests", "Тесты", results.length],
-                  ["console", "Консоль", logs.length],
-                  ["errors", "Ошибки", errors.length],
-                ].map(([key, label, count]) => (
-                  <button
-                    className={consoleTab === key ? "active" : ""}
-                    onClick={() => setConsoleTab(String(key))}
-                    key={key}
-                  >
-                    {label}
-                    <span className="count">{count}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="console-content" aria-live="polite">
-                {consoleTab === "tests" ? (
-                  results.length ? (
-                    results.map((r, i) => (
-                      <div
-                        key={i}
-                        className={
-                          "test-result " + (r.passed ? "passed" : "failed")
-                        }
+              {showPreview && (
+                <div className="preview-window live-preview">
+                  <Preview
+                    key={run.key}
+                    page={run.page}
+                    codes={run.codes}
+                    files={run.files}
+                    onLog={(s) => setLogs((x) => [...x, s].slice(-100))}
+                    onError={(s) => setErrors((x) => [...x, s].slice(-30))}
+                    onNavigate={navigatePreview}
+                  />
+                </div>
+              )}
+              {showConsole && (
+                <section
+                  className="console-panel"
+                  aria-label="Сравнение и вывод"
+                >
+                  <div className="console-tabs">
+                    {[
+                      ["reference", "Образец", null],
+                      ["tests", "Проверка", results.length],
+                      ["console", "Консоль", logs.length],
+                      ["errors", "Ошибки", errors.length],
+                    ].map(([key, label, count]) => (
+                      <button
+                        aria-pressed={consoleTab === key}
+                        onClick={() => setConsoleTab(String(key))}
+                        key={key}
                       >
-                        {r.passed ? (
-                          <Check size={15} />
-                        ) : (
-                          <AlertCircle size={15} />
+                        {label}
+                        {typeof count === "number" && count > 0 && (
+                          <span className="count">{count}</span>
                         )}
-                        <span>
-                          {r.name}
-                          {r.detail && <small>{r.detail}</small>}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="muted">
-                      Нажми «Проверить решение»: тесты проверят события, DOM и
-                      граничные значения.
-                    </p>
-                  )
-                ) : consoleTab === "console" ? (
-                  logs.length ? (
-                    logs.map((line, i) => (
-                      <div className="log-line" key={i}>
-                        › {line}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="muted">Вывод console.log появится здесь.</p>
-                  )
-                ) : errors.length ? (
-                  errors.map((line, i) => (
-                    <div className="error-text" key={i}>
-                      {line}
+                      </button>
+                    ))}
+                  </div>
+                  {consoleTab === "reference" ? (
+                    <div className="preview-window">
+                      <Preview
+                        title="Образец NOVA"
+                        page={run.page}
+                        codes={comparisonCodes}
+                        onNavigate={navigatePreview}
+                      />
                     </div>
-                  ))
-                ) : (
-                  <p className="muted">Ошибок выполнения пока нет.</p>
-                )}
-              </div>
+                  ) : (
+                    <div className="console-content" aria-live="polite">
+                      {consoleTab === "tests" ? (
+                        results.length ? (
+                          results.map((r, i) => (
+                            <div
+                              key={i}
+                              className={`test-result ${r.passed ? "passed" : "failed"}`}
+                            >
+                              {r.passed ? (
+                                <Check size={15} />
+                              ) : (
+                                <AlertCircle size={15} />
+                              )}
+                              <span>
+                                {r.name}
+                                {r.detail && <small>{r.detail}</small>}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <p>
+                            Нажми «
+                            {free ? "Проверить проект" : "Проверить решение"}»,
+                            чтобы увидеть результаты.
+                          </p>
+                        )
+                      ) : consoleTab === "console" ? (
+                        logs.length ? (
+                          logs.map((line, i) => (
+                            <div className="log-line" key={i}>
+                              › {line}
+                            </div>
+                          ))
+                        ) : (
+                          <p>Здесь появится вывод console.log.</p>
+                        )
+                      ) : errors.length ? (
+                        errors.map((line, i) => (
+                          <div className="error-text" key={i}>
+                            {line}
+                          </div>
+                        ))
+                      ) : (
+                        <p>Ошибок выполнения пока нет.</p>
+                      )}
+                    </div>
+                  )}
+                </section>
+              )}
             </section>
           )}
         </div>
-      </div>
-      <div className="workspace-bottom" role="status">
-        <span>
-          {notice || "Черновик сохраняется автоматически. Запуск: Ctrl+Enter."}
-        </span>
-        {!free && verified === signature && (
-          <button className="primary" onClick={apply} disabled={busy}>
-            Добавить в мой проект <Check size={14} />
-          </button>
-        )}
-        {!free && progress.applied.includes(lesson.id) && (
-          <Link
-            className="button"
-            to={lesson.id < 9 ? `/lesson/${lesson.id + 1}` : "/project"}
-          >
-            {lesson.id < 9 ? "Следующее занятие" : "К готовому проекту"}
-            <ChevronRight size={15} />
-          </Link>
-        )}
+        <footer className="workspace-bottom">
+          <div className="workspace-actions">
+            <button onClick={reset} disabled={busy || (!free && readOnly)}>
+              <RotateCcw size={15} /> Сбросить
+            </button>
+            <button onClick={execute} disabled={busy}>
+              <Play size={15} /> Запустить
+            </button>
+            <button className="primary" disabled={busy} onClick={check}>
+              <CheckCheck size={17} />
+              {busy
+                ? "Проверяем…"
+                : free
+                  ? "Проверить проект"
+                  : "Проверить решение"}
+            </button>
+          </div>
+          <p className="workspace-notice" role="status">
+            {notice ||
+              (starterCount > 0
+                ? "Код предыдущих этапов уже подключён"
+                : "Черновик сохраняется автоматически")}
+          </p>
+          {!free && verified === signature && (
+            <button className="primary" onClick={apply} disabled={busy}>
+              <Check size={15} /> Добавить в мой проект
+            </button>
+          )}
+          {!free && progress.applied.includes(lesson.id) && (
+            <Link
+              className="button"
+              to={
+                lesson.id < lessons.length
+                  ? `/lesson/${lesson.id + 1}`
+                  : "/project"
+              }
+            >
+              {lesson.id < lessons.length
+                ? "Следующее занятие"
+                : "К готовому проекту"}
+              <ChevronRight size={15} />
+            </Link>
+          )}
+        </footer>
       </div>
     </main>
   );

@@ -6,10 +6,11 @@ import {
   isResults,
   validMessage,
 } from "../engine/execution";
+const noFiles: Record<string, string> = {};
 export function Preview({
   page,
   codes,
-  files = {},
+  files = noFiles,
   tests,
   onResults,
   onLog,
