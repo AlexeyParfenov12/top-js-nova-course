@@ -6,23 +6,25 @@ import { instrument } from "../src/engine/instrument";
 import { validMessage, isResults } from "../src/engine/execution";
 import { lessons } from "../src/content/course";
 import { projectFiles, referenceCodes } from "../src/projects/nova";
-import { sessionAgenda } from "../src/content/depth";
-import { lessonStats } from "../src/engine/learning";
+import { pairMinutes, sessions } from "../src/content/sessions";
 describe("Курс и экспортируемый проект", () => {
-  it("содержит 9 полных занятий, 72 раздела и 54 упражнения", () => {
+  it("содержит три дня по три пары по 90 минут", () => {
+    expect(pairMinutes).toBe(90);
     expect(lessons).toHaveLength(9);
-    expect(lessons.flatMap((l) => l.exercises)).toHaveLength(54);
-    for (const l of lessons) {
-      expect(l.sections).toHaveLength(8);
-      expect(l.quiz).toHaveLength(4);
-      expect(l.guide.milestones).toHaveLength(5);
-      for (const question of l.quiz)
-        expect(question.answer).toBeLessThan(question.options.length);
-      expect(l.hints).toHaveLength(3);
-      expect(l.tests.length).toBeGreaterThan(150);
-      expect(() => instrument(l.solution)).not.toThrow();
-      for (const e of l.exercises)
-        expect(() => instrument(e.solution)).not.toThrow();
+    for (const day of [1, 2, 3]) {
+      expect(lessons.filter((lesson) => lesson.day === day)).toHaveLength(3);
+    }
+    for (const lesson of lessons) {
+      expect(sessions[lesson.id].topics).toHaveLength(3);
+      expect(sessions[lesson.id].practice).toHaveLength(3);
+      expect(lesson.exercises).toHaveLength(2);
+      expect(
+        new Set(lesson.exercises.map((exercise) => exercise.slot)).size,
+      ).toBe(2);
+      expect(() => instrument(lesson.solution)).not.toThrow();
+      for (const exercise of lesson.exercises) {
+        expect(() => instrument(exercise.solution)).not.toThrow();
+      }
     }
   });
   it("создаёт независимые связанные страницы", () => {
@@ -44,35 +46,24 @@ describe("Курс и экспортируемый проект", () => {
     }
   });
 });
-describe("Расширенный учебный маршрут", () => {
-  it("планирует 90 минут активной работы и сохраняет все новые шаги", () => {
-    expect(sessionAgenda.reduce((sum, part) => sum + part.minutes, 0)).toBe(90);
-    const p = emptyProgress();
-    for (const l of lessons) {
-      l.sections.forEach((_, i) => (p.sections[`${l.id}-${i}`] = true));
-      l.guide.reflection.forEach(
-        (_, i) => (p.sections[`${l.id}-${20 + i}`] = true),
-      );
-      l.exercises.forEach((e, i) => {
-        p.exercises[`${l.id}-${i}`] = true;
-        p.exerciseDrafts[`${l.id}-${i}`] = e.solution;
-      });
-      l.quiz.forEach((_, i) => (p.exercises[`${l.id}-${10 + i}`] = true));
-      p.applied.push(l.id);
-      p.codes[l.id] = l.solution;
+describe("Совместимость прогресса", () => {
+  it("сохраняет полные данные предыдущего формата курса", () => {
+    const progress = emptyProgress();
+    for (const lesson of lessons) {
+      for (let slot = 0; slot < 6; slot++) {
+        progress.exerciseDrafts[`${lesson.id}-${slot}`] = "// Старый черновик";
+        progress.exercises[`${lesson.id}-${slot}`] = true;
+      }
+      for (const slot of [10, 11, 12, 13])
+        progress.exercises[`${lesson.id}-${slot}`] = true;
+      for (const slot of [0, 1, 2, 3, 4, 5, 6, 7, 20, 21, 22])
+        progress.sections[`${lesson.id}-${slot}`] = true;
+      progress.applied.push(lesson.id);
+      progress.codes[lesson.id] = lesson.solution;
     }
-    const restored = validateProgress(JSON.parse(JSON.stringify(p)));
-    expect(Object.keys(restored.exerciseDrafts)).toHaveLength(54);
-    expect(Object.keys(restored.exercises)).toHaveLength(90);
-    expect(Object.keys(restored.sections)).toHaveLength(99);
-    for (const l of lessons) expect(lessonStats(l, restored).percent).toBe(100);
-  });
-  it("не переписывает ответы прежних упражнений при загрузке", () => {
-    const p = emptyProgress();
-    p.exerciseDrafts["1-0"] = "Старый черновик";
-    p.exercises["1-0"] = true;
-    p.sections["1-0"] = true;
-    expect(validateProgress(p).exerciseDrafts["1-0"]).toBe("Старый черновик");
+    expect(validateProgress(JSON.parse(JSON.stringify(progress)))).toEqual(
+      progress,
+    );
   });
 });
 describe("Защита от случайных бесконечных циклов", () => {

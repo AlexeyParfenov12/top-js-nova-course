@@ -13,7 +13,7 @@ export function PracticeExercise({
   index: number;
 }) {
   const { progress, update } = useProgress();
-  const key = `${lessonId}-${index}`;
+  const key = `${lessonId}-${exercise.slot}`;
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [hint, setHint] = useState(false);
@@ -27,7 +27,11 @@ export function PracticeExercise({
       `test('Упражнение',()=>{${exercise.tests}});`,
     );
     const passed = results.length > 0 && results.every((r) => r.passed);
-    update((p) => ({ ...p, exercises: { ...p.exercises, [key]: passed } }));
+    update((p) =>
+      (p.exerciseDrafts[key] ?? exercise.starter) === code
+        ? { ...p, exercises: { ...p.exercises, [key]: passed } }
+        : p,
+    );
     setMessage(
       passed
         ? "Верно! Все сценарии пройдены."
@@ -39,12 +43,9 @@ export function PracticeExercise({
     setBusy(false);
   }
   return (
-    <article className="exercise panel">
+    <article className="exercise">
       <div className="spread">
-        <span className="exercise-tag">
-          {String(index + 1).padStart(2, "0")} /{" "}
-          {index < 2 ? "РАЗМИНКА" : index < 4 ? "ЗАКРЕПЛЕНИЕ" : "ПРИМЕНЕНИЕ"}
-        </span>
+        <h2>{exercise.title}</h2>
         {progress.exercises[key] && (
           <span className="success">
             <Check size={16} />
@@ -52,13 +53,13 @@ export function PracticeExercise({
           </span>
         )}
       </div>
-      <h3>{exercise.prompt}</h3>
+      <p>{exercise.prompt}</p>
       <div className="mini-editor-caption">
-        <span>exercise-{index + 1}.js</span>
-        <small>JavaScript · редактируемый код</small>
+        <span>JavaScript</span>
       </div>
       <textarea
         spellCheck={false}
+        disabled={busy}
         aria-label={`Код упражнения ${index + 1}`}
         value={code}
         onChange={(e) => {
@@ -81,6 +82,7 @@ export function PracticeExercise({
         </button>
         <button
           aria-label={`Сбросить упражнение ${index + 1}`}
+          disabled={busy}
           onClick={() => {
             update((p) => ({
               ...p,

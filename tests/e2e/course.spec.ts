@@ -3,55 +3,47 @@ import JSZip from "jszip";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-test("Восемь разделов, шесть задач, контроль и сохранение новых ответов", async ({
+test("Простой маршрут от лекции через две задачи к практике", async ({
   page,
 }) => {
   await page.goto("#/lesson/1");
-  await expect(page.locator(".reading-nav button")).toHaveCount(8);
+  const phases = page.getByRole("navigation", { name: "Части пары" });
+  await expect(phases.locator("button, a")).toHaveCount(3);
+  await expect(
+    phases.getByRole("button", { name: /Лекция.*30 мин/ }),
+  ).toBeVisible();
+  await expect(
+    phases.getByRole("button", { name: /Тренажёр.*25 мин/ }),
+  ).toBeVisible();
+  await expect(
+    phases.getByRole("link", { name: /Практика NOVA.*35 мин/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Пример для разбора" }),
+  ).toBeVisible();
+  await page.getByText("План для преподавателя", { exact: false }).click();
+  await expect(page.getByText("78–90 мин", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "К тренажёру", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Поменяй заголовок" }),
+  ).toBeVisible();
+  await expect(page.locator(".exercise")).toHaveCount(1);
+  await page.getByRole("button", { name: "Ко второй задаче" }).click();
   await page
-    .locator(".lesson-tabs")
-    .getByRole("button", { name: /Контроль/ })
-    .click();
-  const first = page.locator(".knowledge-question").first();
-  await first.getByLabel("Пустую строку", { exact: true }).check();
-  await first.getByRole("button", { name: "Проверить ответ" }).click();
-  await expect(first.getByText("Пока неверно.", { exact: true })).toBeVisible();
-  await first.getByLabel("null", { exact: true }).check();
-  await first.getByRole("button", { name: "Проверить ответ" }).click();
-  await expect(first.getByText("Верно.", { exact: true })).toBeVisible();
-  await page.locator(".reflection input").first().check();
-  await page
-    .locator(".lesson-tabs")
-    .getByRole("button", { name: /Тренажёр/ })
-    .click();
-  await expect(page.locator(".exercise")).toHaveCount(6);
-  const last = page.locator(".exercise").last();
-  await last
-    .getByLabel("Код упражнения 6")
+    .getByLabel("Код упражнения 2")
     .fill(
       "function connectButton(){const button=document.querySelector('#hello');button.addEventListener('click',()=>button.textContent='Я иду на NOVA');}",
     );
-  await last.getByRole("button", { name: "Проверить", exact: true }).click();
-  await expect(last.getByText("Верно! Все сценарии пройдены.")).toBeVisible();
+  await page.getByRole("button", { name: "Проверить", exact: true }).click();
+  await expect(page.getByText("Верно! Все сценарии пройдены.")).toBeVisible();
   await expect(page.getByText("Сохранено на устройстве").first()).toBeVisible();
   await page.reload();
-  await page
-    .locator(".lesson-tabs")
-    .getByRole("button", { name: /Контроль/ })
-    .click();
+  await phases.getByRole("button", { name: /Тренажёр/ }).click();
+  await page.getByRole("button", { name: /2\. Самостоятельно/ }).click();
+  await expect(page.getByText("Выполнено", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "К практике NOVA" }).click();
   await expect(
-    page
-      .locator(".knowledge-question")
-      .first()
-      .getByText("Верно.", { exact: true }),
-  ).toBeVisible();
-  await expect(page.locator(".reflection input").first()).toBeChecked();
-  await page
-    .locator(".lesson-tabs")
-    .getByRole("button", { name: /Тренажёр/ })
-    .click();
-  await expect(
-    page.locator(".exercise").last().getByText("Выполнено", { exact: true }),
+    page.getByRole("button", { name: "Условие задания" }),
   ).toBeVisible();
 });
 test("Чтение и задания адаптируются к компьютеру, планшету и телефону", async ({
@@ -68,13 +60,13 @@ test("Чтение и задания адаптируются к компьют�
     ).toBeVisible();
     await page
       .locator(".lesson-tabs")
-      .getByRole("button", { name: /Теория/ })
+      .getByRole("button", { name: /Лекция/ })
       .click();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth + 1,
       ),
-      `Теория ${width}`,
+      `Лекция ${width}`,
     ).toBe(true);
     await page.screenshot({
       path: testInfo.outputPath(`lesson-${width}.png`),
@@ -89,16 +81,6 @@ test("Чтение и задания адаптируются к компьют�
         () => document.documentElement.scrollWidth <= window.innerWidth + 1,
       ),
       `Тренажёр ${width}`,
-    ).toBe(true);
-    await page
-      .locator(".lesson-tabs")
-      .getByRole("button", { name: /Контроль/ })
-      .click();
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= window.innerWidth + 1,
-      ),
-      `Контроль ${width}`,
     ).toBe(true);
   }
 });
@@ -402,19 +384,22 @@ test("Задание второго дня открывается с готов�
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(390);
 });
-test("Теория, тренажёр, перенос JSON и отказ от повреждённого импорта", async ({
+test("Лекция, тренажёр, перенос JSON и отказ от повреждённого импорта", async ({
   page,
 }) => {
   await page.goto("#/lesson/1");
-  await page.getByRole("button", { name: "Выполнить строку" }).click();
-  await expect(page.getByText('title → "NOVA"', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Пример для разбора" }),
+  ).toBeVisible();
   await page
     .locator(".lesson-tabs")
     .getByRole("button", { name: /Тренажёр/ })
     .click();
   await page
     .getByLabel("Код упражнения 1")
-    .fill("function festivalName(){return 'NOVA';}");
+    .fill(
+      "function renameTitle(text){document.querySelector('#hero-title').textContent=text;}",
+    );
   await page
     .getByRole("button", { name: "Проверить", exact: true })
     .first()
@@ -426,7 +411,7 @@ test("Теория, тренажёр, перенос JSON и отказ от п�
   const file = await downloadEvent;
   const raw = await fs.readFile((await file.path())!);
   const backup = JSON.parse(raw.toString());
-  expect(backup.exercises["1-0"]).toBe(true);
+  expect(backup.exercises["1-3"]).toBe(true);
   await page.getByLabel("Импорт JSON прогресса").setInputFiles({
     name: "bad.json",
     mimeType: "application/json",
@@ -511,14 +496,7 @@ test("Ввод кода в Monaco, сохранение черновика и р
       .locator("#hero-title"),
   ).toHaveText("Мой фестиваль");
 });
-test("Лаборатории и самостоятельный образец NOVA", async ({ page }) => {
-  await page.goto("#/lesson/1");
-  await page.getByLabel("Заголовок лаборатории").fill("Мой NOVA");
-  await page.getByRole("button", { name: "Изменить textContent" }).click();
-  await expect(page.locator(".lab-output")).toHaveText("Мой NOVA");
-  await page.goto("#/lesson/6");
-  await page.locator(".concept-lab select").first().selectOption("3");
-  await expect(page.locator(".lab-output")).toContainText("Ничего не найдено");
+test("Самостоятельный образец NOVA", async ({ page }) => {
   await page.goto("nova/index.html");
   await expect(page.locator("#hero-title")).toHaveText(
     "NOVA — будущее начинается здесь",

@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { lessons } from "../content/course";
+import { sessions } from "../content/sessions";
 import type { NovaPage, TestResult } from "../content/types";
 import { useProgress } from "../engine/persistence";
 import { checkInSandbox } from "../engine/execution";
@@ -385,7 +386,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
               <details className="task-disclosure" key={`plan-${lesson.id}`}>
                 <summary>План работы</summary>
                 <ol>
-                  {lesson.guide.milestones.map((milestone) => (
+                  {sessions[lesson.id].practice.map((milestone) => (
                     <li key={milestone}>{milestone}</li>
                   ))}
                 </ol>

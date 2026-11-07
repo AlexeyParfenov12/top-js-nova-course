@@ -16,9 +16,7 @@ try {
   const response = await page.goto(base);
   assert.equal(response.status(), 200);
   await page.locator(".course-welcome").waitFor();
-  assert.match(await page.locator(".course-numbers").innerText(), /72/);
-  assert.match(await page.locator(".course-numbers").innerText(), /54/);
-  assert.match(await page.locator(".course-numbers").innerText(), /36/);
+  assert.equal(await page.locator(".day-card .lesson-row").count(), 9);
   if (process.argv[4])
     await page.screenshot({ path: process.argv[4], fullPage: false });
   await page
@@ -27,29 +25,21 @@ try {
   await page
     .getByRole("heading", { name: "Первые строки JavaScript", exact: true })
     .waitFor();
-  await page.locator(".reading-nav button").last().waitFor();
-  assert.equal(await page.locator(".reading-nav button").count(), 8);
+  const phases = page.getByRole("navigation", { name: "Части пары" });
+  await phases.getByRole("button", { name: /Лекция.*30 мин/ }).waitFor();
+  assert.equal(await phases.locator("button, a").count(), 3);
   if (process.argv[5])
     await page.screenshot({ path: process.argv[5], fullPage: false });
+  await phases.getByRole("button", { name: /Тренажёр.*25 мин/ }).click();
+  await page.getByRole("heading", { name: "Поменяй заголовок" }).waitFor();
+  assert.equal(await page.locator(".exercise").count(), 1);
+  await page.getByRole("button", { name: /2\. Самостоятельно/ }).click();
+  await page.getByRole("heading", { name: "Подключи кнопку" }).waitFor();
+  if (process.argv[8])
+    await page.screenshot({ path: process.argv[8], fullPage: false });
   await page
     .locator(".lesson-tabs")
-    .getByRole("button", { name: /Контроль/ })
-    .click();
-  await page.locator(".knowledge-question").first().waitFor();
-  assert.equal(await page.locator(".knowledge-question").count(), 4);
-  const first = page.locator(".knowledge-question").first();
-  await first.getByLabel("null", { exact: true }).check();
-  await first.getByRole("button", { name: "Проверить ответ" }).click();
-  await first.getByText("Верно.", { exact: true }).waitFor();
-  await page
-    .locator(".lesson-tabs")
-    .getByRole("button", { name: /Тренажёр/ })
-    .click();
-  await page.locator(".exercise").first().waitFor();
-  assert.equal(await page.locator(".exercise").count(), 6);
-  await page
-    .locator(".lesson-tabs")
-    .getByRole("link", { name: "Практика NOVA", exact: true })
+    .getByRole("link", { name: /Практика NOVA.*35 мин/ })
     .click();
   await page.locator(".monaco-editor").first().waitFor({ timeout: 30000 });
   await page.reload();
@@ -134,9 +124,14 @@ try {
     JSON.stringify({
       url: base,
       platform: true,
-      courseContent: { sections: 72, exercises: 54, questions: 36 },
+      courseContent: {
+        days: 3,
+        sessions: 9,
+        minutesPerSession: 90,
+        exercises: 18,
+      },
       learningUI: true,
-      quiz: true,
+      classroomFlow: true,
       routeReload: true,
       monaco: true,
       grading: true,

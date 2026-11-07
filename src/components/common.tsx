@@ -1,6 +1,7 @@
 import { ArrowUpRight, Check, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { lessons } from "../content/course";
+import { pairMinutes } from "../content/sessions";
 import { useProgress } from "../engine/persistence";
 export function Brand() {
   return (
@@ -64,12 +65,8 @@ export function LessonRow({ id }: { id: number }) {
       <div>
         <strong>{l.title}</strong>
         <small>{l.feature}</small>
-        <span className="lesson-row-meta">
-          {l.sections.length} тем · {l.exercises.length} задач · {l.quiz.length}{" "}
-          вопроса
-        </span>
       </div>
-      <span className="duration">90 мин</span>
+      <span className="duration">{pairMinutes} мин</span>
       <ChevronRight size={17} />
     </Link>
   );

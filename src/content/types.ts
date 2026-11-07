@@ -6,34 +6,9 @@ export type NovaPage =
   | "speakers"
   | "tickets"
   | "contacts";
-export interface Section {
-  title: string;
-  text: string;
-  code: string;
-  note: string;
-  walkthrough?: string[];
-  experiment?: string;
-  prediction?: { prompt: string; answer: string };
-}
-export interface KnowledgeQuestion {
-  prompt: string;
-  options: string[];
-  answer: number;
-  explanation: string;
-}
-export interface SessionGuide {
-  warmup: string;
-  prerequisite: string;
-  milestones: string[];
-  selfCheck: string[];
-  extension: string;
-  reflection: string[];
-}
-export interface FullLesson extends Lesson {
-  quiz: KnowledgeQuestion[];
-  guide: SessionGuide;
-}
 export interface Exercise {
+  slot: number;
+  title: string;
   prompt: string;
   starter: string;
   solution: string;
@@ -48,7 +23,6 @@ export interface Lesson {
   goal: string;
   feature: string;
   page: NovaPage;
-  sections: Section[];
   exercises: Exercise[];
   task: string;
   requirements: string[];
@@ -57,7 +31,6 @@ export interface Lesson {
   hints: [string, string, string];
   tests: string;
   summary: string;
-  demo: { code: string[]; states: string[] };
 }
 export interface TestResult {
   name: string;

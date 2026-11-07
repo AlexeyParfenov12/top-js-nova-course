@@ -630,41 +630,6 @@ body {
 .day-card .lesson-row > svg {
   width: 13px;
 }
-.project-teaser {
-  display: flex;
-  align-items: center;
-  gap: 25px;
-  padding: 30px;
-  margin: 32px 0;
-  border: 1px solid #5b3d70;
-  border-radius: 9px;
-  background: linear-gradient(120deg, #3c2b4b, #2b2433);
-}
-.project-teaser h2 {
-  font-size: 22px;
-  margin: 8px 0;
-}
-.project-teaser p:not(.eyebrow) {
-  font-size: 13px;
-  line-height: 1.7;
-  color: #bdb0c9;
-  max-width: 650px;
-  margin-bottom: 0;
-}
-.project-teaser .button {
-  margin-left: auto;
-  white-space: nowrap;
-}
-.project-symbol {
-  color: #c393e8;
-  background: #513568;
-  width: 75px;
-  height: 75px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-}
 .quiet-note {
   display: flex;
   align-items: center;
@@ -721,10 +686,6 @@ body {
   font-size: 9px;
   color: #cebbdd;
 }
-.day-progress {
-  width: 180px;
-  margin-left: auto;
-}
 .curriculum-day .lesson-row {
   padding: 20px 25px;
   border-top: 1px solid var(--line);
@@ -736,88 +697,6 @@ body {
   gap: 20px;
   color: var(--muted);
 }
-.lesson-layout {
-  display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
-  max-width: 1600px;
-  margin: auto;
-  min-height: calc(100vh - 80px);
-}
-.lesson-sidebar {
-  border-right: 1px solid var(--line);
-  padding: 28px 18px;
-  background: #27212e;
-}
-.lesson-route {
-  margin: 25px 0;
-}
-.lesson-route > a {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 13px 10px;
-  font-size: 11px;
-  line-height: 1.5;
-  border-radius: 5px;
-  color: #c3b5ce;
-}
-.lesson-route > a > span {
-  color: #c7a0e5;
-  font-size: 11px;
-  min-width: 18px;
-  margin-top: 3px;
-}
-.lesson-route a small {
-  display: block;
-  font-size: 9px;
-  color: #9d8bab;
-  margin-bottom: 3px;
-}
-.lesson-route a.selected {
-  background: #53356b;
-  color: white;
-}
-.lesson-main {
-  padding: 34px 45px 60px;
-  max-width: 1200px;
-  min-width: 0;
-}
-.lesson-main h1 {
-  font-size: 36px;
-  letter-spacing: -1px;
-  padding-right: 44px;
-}
-.lesson-goal {
-  color: #c9bdcf;
-  font-size: 15px;
-  line-height: 1.7;
-  max-width: 850px;
-}
-.tabs {
-  display: flex;
-  gap: 0;
-}
-.tabs > button,
-.tabs > .button {
-  border-radius: 0;
-  flex: 1;
-}
-.tabs > :first-child {
-  border-radius: 7px 0 0 7px;
-}
-.tabs > :last-child {
-  border-radius: 0 7px 7px 0;
-}
-.tabs button.active {
-  background: #684087;
-  border-color: #a772d2;
-}
-.lesson-tabs {
-  margin: 26px 0;
-}
-.lesson-tabs > .button {
-  background: #302738;
-}
 .count {
   font-size: 9px;
   padding: 2px 6px;
@@ -825,45 +704,6 @@ body {
   background: #ffffff13;
   color: #d4bfdc;
 }
-.section-tabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 25px;
-}
-.section-tabs button {
-  font-size: 10px;
-  padding: 7px 9px;
-  border: 0;
-  background: transparent;
-  color: #b0a0bb;
-  gap: 5px;
-  text-align: left;
-}
-.section-tabs button span {
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: #4b395c;
-  width: 18px;
-  height: 18px;
-}
-.section-tabs button.selected {
-  background: #483354;
-  color: #f0dffa;
-}
-.theory {
-  max-width: 850px;
-}
-.theory h2 {
-  font-size: 26px;
-}
-.theory > p {
-  font-size: 16px;
-  line-height: 1.9;
-  color: #d1c6db;
-}
-.theory pre,
 pre {
   font-family: Consolas, monospace;
   font-size: 13px;
@@ -876,152 +716,6 @@ pre {
   color: #dcc5f4;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-}
-.tip {
-  border: 1px solid #674880;
-  background: #3b2c47;
-  padding: 17px 20px;
-  border-radius: 7px;
-  font-size: 13px;
-  line-height: 1.7;
-  margin: 22px 0;
-  color: #d2bddf;
-}
-.tip p {
-  margin: 7px 0 0;
-  font-size: 13px;
-  line-height: 1.7;
-}
-.section-next {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 25px 0;
-  font-size: 12px;
-}
-.demo {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #2c2533;
-  padding: 22px;
-  margin: 30px 0;
-}
-.demo h3 {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 16px;
-  margin: 0;
-}
-.demo .pill {
-  font-size: 10px;
-}
-.demo-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 15px;
-  margin: 20px 0;
-}
-.demo-code {
-  background: #211b28;
-  border-radius: 5px;
-  padding: 14px 0;
-  overflow: auto;
-}
-.demo-code > div {
-  display: flex;
-  gap: 15px;
-  padding: 6px 14px;
-  font-family: Consolas, monospace;
-  font-size: 11px;
-  line-height: 1.6;
-}
-.demo-code > div > span {
-  color: #897298;
-}
-.demo-code > div.executing {
-  background: #76479566;
-  border-left: 3px solid #cb8df3;
-  padding-left: 11px;
-}
-.memory {
-  padding: 16px;
-  background: #3c2c49;
-  border-radius: 5px;
-  font-size: 13px;
-  line-height: 1.8;
-}
-.memory .eyebrow {
-  font-size: 8px;
-}
-.memory p {
-  margin-bottom: 0;
-}
-.dom-tree {
-  font-family: monospace;
-  font-size: 11px;
-  color: #bcdfc7;
-}
-.demo-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-.demo-actions button {
-  font-size: 12px;
-  padding: 8px 12px;
-}
-.lesson-summary {
-  padding: 24px;
-  border-left: 3px solid #9561bc;
-  background: #35283e;
-  border-radius: 5px;
-}
-.lesson-summary p:not(.eyebrow) {
-  font-size: 13px;
-  color: #c5b5d0;
-  line-height: 1.8;
-}
-.lesson-footer {
-  margin-top: 35px;
-}
-.exercise {
-  margin: 20px 0;
-}
-.exercise h3 {
-  font-size: 17px;
-  line-height: 1.7;
-}
-.exercise textarea {
-  resize: vertical;
-  width: 100%;
-  min-height: 160px;
-  background: #211b28;
-  border: 1px solid #55425f;
-  border-radius: 6px;
-  padding: 20px;
-  color: #ddc4f1;
-  font-family: Consolas, monospace;
-  font-size: 13px;
-  line-height: 1.8;
-  tab-size: 2;
-}
-.exercise-actions {
-  display: flex;
-  gap: 9px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-top: 17px;
-}
-.exercise-actions button {
-  font-size: 12px;
-  padding: 9px 12px;
-}
-.exercise-actions details {
-  font-size: 11px;
-}
-.exercise-actions details[open] {
-  flex-basis: 100%;
 }
 summary {
   cursor: pointer;
@@ -1333,9 +1027,6 @@ textarea:focus-visible {
   .hero .nova-poster {
     max-height: 440px;
   }
-  .lesson-main {
-    padding: 45px 65px;
-  }
   .project-previews > div {
     height: 760px;
   }
@@ -1385,25 +1076,6 @@ textarea:focus-visible {
   }
   .day-card {
     padding: 16px 12px 8px;
-  }
-  .project-teaser {
-    padding: 22px;
-    gap: 18px;
-  }
-  .project-teaser h2 {
-    font-size: 19px;
-  }
-  .project-symbol {
-    display: none;
-  }
-  .lesson-sidebar {
-    width: 220px;
-  }
-  .lesson-layout {
-    grid-template-columns: 220px minmax(0, 1fr);
-  }
-  .lesson-main {
-    padding: 30px;
   }
   .project-overview {
     gap: 20px;
@@ -1489,33 +1161,6 @@ textarea:focus-visible {
   .section-heading > .muted {
     display: none;
   }
-  .project-teaser {
-    flex-wrap: wrap;
-  }
-  .project-teaser .button {
-    margin-left: 0;
-  }
-  .lesson-layout {
-    grid-template-columns: 190px minmax(0, 1fr);
-  }
-  .lesson-sidebar {
-    width: 190px;
-    padding: 25px 12px;
-  }
-  .lesson-main {
-    padding: 28px;
-  }
-  .lesson-main h1 {
-    font-size: 30px;
-  }
-  .demo-grid {
-    grid-template-columns: 1fr;
-  }
-  .lesson-tabs button,
-  .lesson-tabs .button {
-    font-size: 11px;
-    padding: 11px;
-  }
   .project-overview {
     flex-wrap: wrap;
   }
@@ -1530,9 +1175,6 @@ textarea:focus-visible {
   }
   .project-previews.comparing {
     grid-template-columns: 1fr;
-  }
-  .day-progress {
-    width: 110px;
   }
   .curriculum-head {
     padding: 20px;
@@ -1646,12 +1288,6 @@ textarea:focus-visible {
   .continue-strip .progress-wrap {
     max-width: 120px;
   }
-  .project-teaser h2 {
-    font-size: 20px;
-  }
-  .project-teaser {
-    padding: 20px;
-  }
   .page-heading h1 {
     font-size: 30px;
   }
@@ -1664,63 +1300,8 @@ textarea:focus-visible {
   .day-index {
     font-size: 25px;
   }
-  .day-progress {
-    display: none;
-  }
   .curriculum-head h2 {
     font-size: 17px;
-  }
-  .lesson-layout {
-    display: block;
-  }
-  .lesson-sidebar {
-    display: none;
-  }
-  .lesson-main {
-    padding: 25px 18px;
-  }
-  .lesson-main h1 {
-    font-size: 29px;
-  }
-  .lesson-main > .eyebrow {
-    font-size: 9px;
-  }
-  .lesson-goal {
-    font-size: 13px;
-  }
-  .theory > p {
-    font-size: 14px;
-  }
-  .section-tabs button {
-    font-size: 9px;
-  }
-  .lesson-tabs button,
-  .lesson-tabs .button {
-    font-size: 10px;
-    padding: 12px 8px;
-    gap: 6px;
-  }
-  .lesson-tabs svg {
-    width: 14px;
-  }
-  .lesson-tabs .count {
-    display: none;
-  }
-  .theory h2 {
-    font-size: 23px;
-  }
-  .theory pre {
-    font-size: 11px;
-    padding: 15px;
-  }
-  .demo {
-    padding: 15px;
-  }
-  .demo h3 {
-    font-size: 13px;
-  }
-  .lesson-footer .text-link {
-    font-size: 10px;
   }
   .project-title-row h1 {
     font-size: 30px;
@@ -1771,101 +1352,6 @@ textarea:focus-visible {
   .loading-page {
     padding: 60px 25px;
   }
-}
-.concept-lab {
-  padding: 22px;
-  border: 1px solid #635078;
-  border-radius: 8px;
-  background: #302438;
-  margin: 28px 0;
-}
-.concept-lab h3 {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 16px;
-  margin: 0 0 10px;
-}
-.concept-lab label {
-  font-size: 11px;
-  color: #c5b0d2;
-  display: inline-flex;
-  flex-direction: column;
-  gap: 7px;
-  margin: 10px 12px 15px 0;
-}
-.concept-lab input,
-.concept-lab select {
-  background: #211b28;
-  border: 1px solid #665071;
-  border-radius: 5px;
-  color: #ebd9f8;
-  padding: 10px 12px;
-  max-width: 230px;
-}
-.concept-lab button {
-  font-size: 11px;
-  padding: 10px 14px;
-}
-.lab-inputs {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-.lab-output {
-  padding: 18px;
-  border-radius: 5px;
-  background: #211b28;
-  margin: 16px 0;
-  color: #e6d1f5;
-  line-height: 1.6;
-  font-size: 15px;
-  min-height: 58px;
-  overflow-wrap: anywhere;
-}
-.lab-output p {
-  margin: 4px 0;
-}
-.lab-menu {
-  padding: 15px;
-  margin-top: 12px;
-  background: #653d7e;
-  border-radius: 4px;
-  font-size: 12px;
-}
-.lab-tags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 15px 0;
-}
-.lab-tags span {
-  padding: 10px 15px;
-  border: 1px solid #7e5496;
-  border-radius: 6px;
-  font-size: 12px;
-  background: #422c52;
-}
-.lab-dialog {
-  border: 1px solid #9e6ac5;
-  border-radius: 12px;
-  background: #302439;
-  color: #efe2fa;
-  padding: 30px;
-  max-width: 430px;
-  box-shadow: 0 30px 100px #160c2288;
-}
-.lab-dialog::backdrop {
-  background: #140d1fc9;
-  backdrop-filter: blur(5px);
-}
-.lab-dialog h2 {
-  font-size: 23px;
-}
-.lab-dialog p {
-  font-size: 14px;
-  line-height: 1.8;
 }
 /* Direct access to the independent NOVA website. */
 .app-header nav a.nova-external-link {
