@@ -4,7 +4,7 @@ import type { Exercise } from "../content/types";
 import { useProgress } from "../engine/persistence";
 import { checkInSandbox } from "../engine/execution";
 import { CodeEditor } from "./CodeEditor";
-import { JavaScriptCode } from "./JavaScriptCode";
+import { SyntaxCode } from "./SyntaxCode";
 export default function PracticeExercise({
   exercise,
   lessonId,
@@ -104,7 +104,7 @@ export default function PracticeExercise({
         <details>
           <summary>Посмотреть эталон</summary>
           <pre>
-            <JavaScriptCode code={exercise.solution} />
+            <SyntaxCode code={exercise.solution} />
           </pre>
         </details>
       </div>

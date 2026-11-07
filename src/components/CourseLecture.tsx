@@ -2,9 +2,13 @@ import { BookOpen } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Lecture } from "../content/lectures";
 import type { Lesson } from "../content/types";
+import {
+  assignmentWalkthroughs,
+  type LineNote,
+} from "../content/assignmentWalkthroughs";
 import { assignmentGuides, lectureExamples } from "../content/lectureExamples";
 import { LectureFigure } from "./LectureFigure";
-import { JavaScriptCode } from "./JavaScriptCode";
+import { SyntaxCode } from "./SyntaxCode";
 
 const conceptTimes = ["5–9", "9–13", "13–17"];
 
@@ -17,6 +21,7 @@ export function CourseLecture({
 }) {
   const examples = lectureExamples[lesson.id];
   const guide = assignmentGuides[lesson.id];
+  const walkthrough = assignmentWalkthroughs[lesson.id];
   const chapters = [
     { id: "lecture-start", title: "Зачем это нужно" },
     ...lecture.concepts.map((concept, index) => ({
@@ -94,10 +99,16 @@ export function CourseLecture({
                 <h4>
                   {index + 1}. {exercise.title}
                 </h4>
-                <pre aria-label={`Заготовка задачи ${index + 1}`}>
-                  <JavaScriptCode code={exercise.starter} />
-                </pre>
-                <p>{guide.trainer[index]}</p>
+                <div className="lecture-assignment-content">
+                  <pre aria-label={`Заготовка задачи ${index + 1}`}>
+                    <SyntaxCode code={exercise.starter} />
+                  </pre>
+                  <p>{guide.trainer[index]}</p>
+                </div>
+                <AssignmentLineNotes
+                  notes={walkthrough.trainer[index]}
+                  initiallyOpen={index === 0}
+                />
               </div>
             ))}
           </div>
@@ -110,6 +121,7 @@ export function CourseLecture({
               caption: guide.result,
             }}
           />
+          <AssignmentLineNotes notes={walkthrough.practice} />
         </section>
         <section>
           <Chapter number={6} id="lecture-end" time="27–30">
@@ -126,6 +138,37 @@ export function CourseLecture({
         </section>
       </article>
     </div>
+  );
+}
+
+function AssignmentLineNotes({
+  notes,
+  initiallyOpen = false,
+}: {
+  notes: LineNote[];
+  initiallyOpen?: boolean;
+}) {
+  return (
+    <details className="assignment-line-notes" open={initiallyOpen}>
+      <summary>Построчный разбор</summary>
+      <ol aria-label="Пояснения к строкам">
+        {notes.map((note, index) =>
+          note ? (
+            <li key={index} value={index + 1}>
+              {typeof note === "string" ? (
+                <p>{note}</p>
+              ) : (
+                <ul>
+                  {note.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ) : null,
+        )}
+      </ol>
+    </details>
   );
 }
 

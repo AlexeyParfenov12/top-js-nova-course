@@ -583,8 +583,7 @@
 
 .lecture-figure-source {
   min-width: 0;
-  padding: 12px 14px;
-  background: #f5f0f9;
+  background: white;
   border-right: 1px solid #e8dff1;
 }
 
@@ -595,10 +594,29 @@
   font-weight: 700;
 }
 
+.lecture-figure-source > .lecture-figure-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e8dff1;
+  background: #f2edf8;
+}
+
+.lecture-code-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 23px;
+  height: 20px;
+  border-radius: 4px;
+  background: #e8dcf6;
+  font: 700 11px Consolas, monospace;
+}
+
 .lecture-body .lecture-figure-source pre {
-  padding: 0;
+  padding: 10px 12px 10px 5px;
   border: 0;
-  margin: 8px 0 0;
+  margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   background: transparent;
@@ -698,8 +716,14 @@
 
 .lecture-assignment-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.lecture-assignment-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 10px 14px;
 }
 
 .lecture-assignment {
@@ -715,9 +739,11 @@
 }
 
 .lecture-body .lecture-assignment pre {
-  margin: 0 0 8px;
+  margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  padding-inline: 5px 10px;
+  background: #fbf9fd;
 }
 
 .lecture-body .lecture-assignment p {
@@ -725,9 +751,46 @@
   font-size: 13px;
 }
 
+.assignment-line-notes {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid #e9e0f2;
+  border-radius: 8px;
+  background: #faf7fd;
+}
+
+.assignment-line-notes summary {
+  color: #56358a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.lecture-body .assignment-line-notes ol {
+  margin: 8px 0 0;
+  padding-left: 1.6em;
+}
+
+.lecture-body .assignment-line-notes ol > li {
+  padding: 4px 0 4px 3px;
+}
+
+.assignment-line-notes ol > li::marker {
+  color: #5c3897;
+  font-family: Consolas, monospace;
+  font-weight: 700;
+}
+
+.lecture-body .assignment-line-notes p {
+  margin: 0;
+}
+
+.lecture-body .assignment-line-notes ul {
+  margin: 0;
+}
+
 @media (max-width: 650px) {
   .lecture-figure-grid,
-  .lecture-assignment-list {
+  .lecture-assignment-content {
     grid-template-columns: minmax(0, 1fr);
   }
 

@@ -1,5 +1,5 @@
 import type { LectureExample, VisualLine } from "../content/lectureExamples";
-import { JavaScriptCode } from "./JavaScriptCode";
+import { SyntaxCode } from "./SyntaxCode";
 
 export function LectureFigure({
   code,
@@ -24,14 +24,16 @@ export function LectureFigure({
       <div className="lecture-figure-grid">
         <div className="lecture-figure-source">
           <div className="lecture-figure-label">
+            <span className="lecture-code-badge" aria-hidden="true">
+              {example.renderHtml ? "<>" : "JS"}
+            </span>
             {example.renderHtml ? "HTML" : "JavaScript"}
           </div>
           <pre>
-            {example.renderHtml ? (
-              <code>{code}</code>
-            ) : (
-              <JavaScriptCode code={code} />
-            )}
+            <SyntaxCode
+              code={code}
+              language={example.renderHtml ? "html" : "javascript"}
+            />
           </pre>
         </div>
         <div className="lecture-figure-result">

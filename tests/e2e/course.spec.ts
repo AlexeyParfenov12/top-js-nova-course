@@ -42,6 +42,14 @@ test("Простой маршрут от лекции через две зада
   await expect(
     page.getByText(/обработчик меняет текст в отдельном #greeting/),
   ).toBeVisible();
+  const notes = page.locator(".assignment-line-notes");
+  await expect(notes).toHaveCount(3);
+  await expect(notes.first().locator("ol > li")).toHaveCount(3);
+  const practiceNotes = notes.last();
+  await practiceNotes.getByText("Построчный разбор", { exact: true }).click();
+  await expect(practiceNotes.locator('ol > li[value="5"]')).toContainText(
+    "Найдите #hello",
+  );
   const navigator = page.getByRole("dialog", { name: "Навигатор курса" });
   await page.getByRole("button", { name: "Навигатор", exact: true }).click();
   await expect(navigator.getByText(/2 пары сегодня и 8 пар/)).toBeVisible();
@@ -519,7 +527,12 @@ test("Подсветка и автодополнение JavaScript в лекц�
   page,
 }) => {
   await page.goto("#/lesson/1");
-  const snippet = page.locator(".lecture-figure .javascript-code").first();
+  const html = page.locator(".lecture-figure .syntax-code").first();
+  await expect(html.getByText("button", { exact: true }).first()).toHaveCSS(
+    "color",
+    "rgb(105, 65, 175)",
+  );
+  const snippet = page.locator(".lecture-figure .syntax-code").nth(1);
   await expect(snippet.getByText("const", { exact: true })).toHaveCSS(
     "color",
     "rgb(105, 65, 175)",
