@@ -8,14 +8,6 @@ export interface Lecture {
   opening: string[];
   outcome: string;
   concepts: [Concept, Concept, Concept];
-  live: {
-    title: string;
-    setup: string;
-    steps: [string, string, string];
-    code: string;
-    result: string;
-    variation: string;
-  };
   mistakes: [string, string];
   bridge: string;
 }
@@ -34,9 +26,9 @@ export const lectures: Record<number, Lecture> = {
         paragraphs: [
           "HTML описывает, какие элементы есть на странице: заголовок, кнопка, абзац. Когда браузер читает разметку, он строит дерево объектов. Оно называется DOM. JavaScript получает эти объекты через document и может читать или менять их свойства.",
           "У кнопки NOVA есть id со значением hello. В HTML пишем id=\"hello\", а в селекторе добавляем знак #, чтобы искать именно по id. document.querySelector возвращает первое совпадение. Если написать '#helo' с опечаткой, результатом будет null. Это полезная первая проверка, когда код ничего не меняет.",
-          "Покажите в index.html элемент с id hello и найдите его в консоли. Браузер покажет сам элемент. Сравните с поиском id, которого на странице нет.",
+          "Сопоставьте кнопку в разметке, на странице и в дереве DOM. Во всех трёх видах это один элемент. Его id позволяет обратиться к нему из кода.",
         ],
-        code: "console.log(document.querySelector('#hello'));\nconsole.log(document.querySelector('#helo')); // null",
+        code: '<main>\n  <h1 id="hero-title">Фестиваль NOVA</h1>\n  <p>Три дня технологий и новых идей.</p>\n  <button id="hello">Я с вами!</button>\n</main>',
       },
       {
         title: "Как сохранить элемент и изменить текст",
@@ -57,21 +49,6 @@ export const lectures: Record<number, Lecture> = {
         code: "button.addEventListener('click', () => {\n  button.textContent = 'До встречи!';\n});",
       },
     ],
-    live: {
-      title: "Кнопка отвечает после клика",
-      setup:
-        "Откройте главную готового NOVA через «Сайт NOVA ↗». Пишите пример в консоли этой вкладки. Начните со свежей страницы, чтобы предыдущие опыты не влияли на надпись.",
-      steps: [
-        "Найдите #hello и выведите button.textContent. Убедитесь, что на странице есть именно та кнопка, которую нашли.",
-        "Добавьте обработчик и внутри него поменяйте текст. Сравните надпись после запуска скрипта и после нажатия.",
-        "Перезагрузите NOVA и повторите с другой фразой. Объясните вслух, что срабатывает сразу и что ждёт клика.",
-      ],
-      code: "{\n  const button = document.querySelector('#hello');\n  console.log('До клика:', button.textContent);\n  button.addEventListener('click', () => {\n    button.textContent = 'До встречи!';\n  });\n}",
-      result:
-        "После запуска в консоли видна исходная надпись. Текст кнопки меняется на «До встречи!» при первом клике.",
-      variation:
-        "Предложите записать строку с textContent за пределами обработчика и предсказать разницу. Проверьте ответ на свежей странице.",
-    },
     mistakes: [
       "Ошибка «Cannot read properties of null» означает, что поиск не нашёл элемент. Сверьте id, знак # и страницу, на которой запускаете код.",
       "Надпись изменилась до клика. Проверьте, лежит ли присваивание внутри фигурных скобок обработчика.",
@@ -115,21 +92,6 @@ export const lectures: Record<number, Lecture> = {
         code: "function total(price, count) {\n  return price * count;\n}\nconsole.log(total(2500, 2)); // 5000\nconsole.log(total(5000, 3)); // 15000",
       },
     ],
-    live: {
-      title: "От строковой цены к сумме в рублях",
-      setup:
-        "Пример можно целиком набрать в консоли браузера. Страница и поля формы для него не нужны.",
-      steps: [
-        "Объявите total с двумя параметрами. Преобразуйте строковую цену через Number и верните произведение.",
-        "Вызовите функцию для двух билетов. Выведите amount и проверьте typeof.",
-        "Отдельно составьте подпись для экрана и проверьте формулу на другом заказе.",
-      ],
-      code: "{\n  function total(rawPrice, count) {\n    return Number(rawPrice) * count;\n  }\n  const amount = total('2500', 2);\n  console.log(amount, typeof amount);\n  console.log(amount + ' ₽');\n  console.log(total('5000', 3));\n}",
-      result:
-        "В консоли: 5000 number, затем «5000 ₽» и 15000 для второго заказа.",
-      variation:
-        "Подставьте количество 0. Обсудите, почему формула возвращает 0 и почему проверка допустимого количества будет отдельным правилом.",
-    },
     mistakes: [
       "Стоимость выглядит как склейка цифр. Проверьте оператор и типы аргументов: для цены за несколько билетов нужно умножение.",
       "Из функции приходит undefined. Убедитесь, что формула стоит после return, а знак рубля добавляется снаружи.",
@@ -173,21 +135,6 @@ export const lectures: Record<number, Lecture> = {
         code: "cards.forEach((card) => {\n  card.classList.toggle('active', card === selected);\n});",
       },
     ],
-    live: {
-      title: "Два состояния одного меню",
-      setup:
-        "Откройте главную готового NOVA в отдельной вкладке. В консоли выполните пример. Для визуальной проверки меню уменьшите ширину окна. В консоли состояния видны при любой ширине.",
-      steps: [
-        "Найдите навигацию и кнопку по id. Уберите open, чтобы начать с одинакового состояния.",
-        "Опишите переключение: поменяйте класс, сохраните результат и обновите aria-expanded.",
-        "Вызовите функцию дважды и сравните оба результата. Объясните, почему второй вызов отменяет первый.",
-      ],
-      code: "{\n  const nav = document.querySelector('#site-nav');\n  const button = document.querySelector('#menu-toggle');\n  nav.classList.remove('open');\n\n  function toggleMenu() {\n    const isOpen = nav.classList.toggle('open');\n    button.setAttribute('aria-expanded', String(isOpen));\n    console.log(isOpen, button.getAttribute('aria-expanded'));\n  }\n\n  toggleMenu();\n  toggleMenu();\n}",
-      result:
-        "Первый вызов печатает true и 'true'. Второй — false и 'false'. Меню возвращается в закрытое состояние.",
-      variation:
-        "Перед вторым вызовом проверьте nav.classList.contains('open'). Сравните его с aria-expanded и объясните, почему они должны совпадать.",
-    },
     mistakes: [
       "Меню открылось, но aria-expanded остался прежним. Обновляйте атрибут после каждого переключения из результата toggle.",
       "Активных карточек несколько. Пройдите по всей группе и снимите класс со всех элементов, которые не совпадают с selected.",
@@ -217,7 +164,7 @@ export const lectures: Record<number, Lecture> = {
         paragraphs: [
           "При вызове обработчика браузер передаёт объект события. Для keydown в нём есть поле key. Оно содержит имя клавиши, например 'Escape' или 'Enter'. Параметр event — имя, по которому мы читаем этот объект внутри функции.",
           "Сравнение event.key === 'Escape' даст true только для Escape. Поставьте вызов закрытия внутрь условия. Остальные клавиши пройдут без изменений. Вложенный if может проверить, открыто ли окно сейчас.",
-          "В коде ниже close — параметр, в который передали функцию. Это тот же приём, что при передаче функции в addEventListener, только решение о вызове принимаем мы сами.",
+          "В примере close — параметр, в который передали функцию. Это тот же приём, что при передаче функции в addEventListener, только решение о вызове принимаем мы сами.",
         ],
         code: "function keyboardAction(event, close) {\n  if (event.key === 'Escape') {\n    close();\n  }\n}",
       },
@@ -231,21 +178,6 @@ export const lectures: Record<number, Lecture> = {
         code: "function openDialog() {\n  if (!dialog.open) dialog.showModal();\n}\nfunction closeDialog() {\n  if (dialog.open) dialog.close();\n}",
       },
     ],
-    live: {
-      title: "Один обработчик, который ждёт Escape",
-      setup:
-        "Откройте главную готового NOVA. Наберите пример в её консоли. Он использует существующий диалог и отдельно демонстрирует собственный обработчик с пробными данными.",
-      steps: [
-        "Найдите #festival-modal, объявите открытие и закрытие. Выведите dialog.open после открытия.",
-        "Передайте в обработчик сначала объект с key: 'Enter'. Состояние окна должно сохраниться.",
-        "Передайте объект с key: 'Escape' и снова выведите состояние. В практике вместо пробных объектов браузер передаст настоящее событие keydown.",
-      ],
-      code: "{\n  const dialog = document.querySelector('#festival-modal');\n  function closeDialog() {\n    if (dialog.open) dialog.close();\n  }\n  function onKey(event) {\n    if (event.key === 'Escape') closeDialog();\n  }\n  if (!dialog.open) dialog.showModal();\n  onKey({ key: 'Enter' });\n  console.log(dialog.open); // true\n  onKey({ key: 'Escape' });\n  console.log(dialog.open); // false\n}",
-      result:
-        "После Enter диалог открыт, после Escape закрыт. Вызывается одна и та же функция closeDialog.",
-      variation:
-        "До onKey запишите const action = closeDialog и вызовите action после открытия. Объясните, почему новое имя запускает ту же функцию.",
-    },
     mistakes: [
       "Диалог закрылся сразу при подключении кнопки. В addEventListener, скорее всего, стоит closeDialog() вместо closeDialog.",
       "Окно закрывается при любой клавише. Поместите вызов внутрь проверки event.key === 'Escape' и проверьте ещё раз с Enter.",
@@ -289,21 +221,6 @@ export const lectures: Record<number, Lecture> = {
         code: "list.replaceChildren();\nconst item = document.createElement('li');\nitem.textContent = person.name;\nlist.append(item);",
       },
     ],
-    live: {
-      title: "Из массива объектов в список имён",
-      setup:
-        "Запустите пример в консоли браузера. Список создаётся отдельно от страницы, а результат виден через outerHTML.",
-      steps: [
-        "Опишите два объекта. Проверьте обращение к имени первого элемента.",
-        "Создайте список и функцию отрисовки. Очистите список, затем на каждом проходе добавьте новый li.",
-        "Вызовите функцию дважды с разными массивами. Во втором выводе должна остаться только новая запись.",
-      ],
-      code: "{\n  const people = [{ name: 'Анна' }, { name: 'Илья' }];\n  const list = document.createElement('ul');\n  function renderNames(data) {\n    list.replaceChildren();\n    data.forEach((person) => {\n      const item = document.createElement('li');\n      item.textContent = person.name;\n      list.append(item);\n    });\n  }\n  renderNames(people);\n  console.log(list.outerHTML);\n  renderNames([{ name: 'Мира' }]);\n  console.log(list.outerHTML);\n}",
-      result:
-        "В первом списке Анна и Илья. После второго вызова в списке только Мира.",
-      variation:
-        "Закомментируйте replaceChildren, выполните пример и сравните второй вывод. Затем проверьте renderNames([]).",
-    },
     mistakes: [
       "Видна только последняя запись. Создавайте новый элемент внутри forEach, чтобы не перемещать один и тот же узел.",
       "Список растёт при каждом запуске. Очистите контейнер один раз перед обходом, а не внутри цикла.",
@@ -347,21 +264,6 @@ export const lectures: Record<number, Lecture> = {
         code: "const visible = filterEvents(events, day, track);\nrenderEvents(visible);\nemptyMessage.hidden = visible.length !== 0;",
       },
     ],
-    live: {
-      title: "Отбираем события выбранного дня",
-      setup:
-        "Выполните пример в консоли. Данные в нём маленькие, поэтому можно вручную проследить решение filter по каждой записи.",
-      steps: [
-        "Создайте два события первого дня и одно событие второго. Сначала отберите только день.",
-        "Добавьте условие направления в скобках. Сравните результаты для 'all' и 'Web'.",
-        "Выберите направление, которого нет во втором дне. Убедитесь, что вернулся пустой массив.",
-      ],
-      code: "{\n  const events = [\n    { day: 1, track: 'AI', title: 'Вводная' },\n    { day: 1, track: 'Web', title: 'Интерфейсы' },\n    { day: 2, track: 'AI', title: 'Модели' },\n  ];\n  function filterEvents(data, day, track) {\n    return data.filter((item) =>\n      item.day === day && (track === 'all' || item.track === track)\n    );\n  }\n  console.log(filterEvents(events, 1, 'all'));\n  console.log(filterEvents(events, 1, 'Web'));\n  console.log(filterEvents(events, 2, 'Web'));\n}",
-      result:
-        "Сначала два события первого дня, затем только «Интерфейсы», затем пустой массив.",
-      variation:
-        "Замените число 1 в вызове на строку '1'. Объясните пустой результат и восстановите его через Number.",
-    },
     mistakes: [
       "При all появляются события других дней. Проверьте, что условие дня стоит перед &&, а оба варианта направления заключены в скобки.",
       "Сообщение «Ничего не найдено» остаётся после смены фильтра. Обновляйте hidden при каждом запуске, даже если записи уже есть.",
@@ -405,21 +307,6 @@ export const lectures: Record<number, Lecture> = {
         code: "quantityInput.addEventListener('input', updateTotal);\n\ntariffButton.addEventListener('click', () => {\n  currentPrice = 5000;\n  updateTotal();\n});",
       },
     ],
-    live: {
-      title: "Проверяем расчёт на границах",
-      setup:
-        "Сначала работайте в консоли с функцией. После того как она прошла примеры, подключить её к форме будет проще.",
-      steps: [
-        "Преобразуйте строку количества. Обозначьте допустимые значения 1 и 10.",
-        "Верните null для нарушений и сумму для корректных данных. Проверьте оба края диапазона.",
-        "Прогоните пустой ввод, 11, дробь и нулевую цену. Обсудите разницу между null и 0.",
-      ],
-      code: "{\n  function totalFromInput(price, rawCount) {\n    const count = Number(rawCount);\n    if (!Number.isFinite(price) || price < 0) return null;\n    if (!Number.isInteger(count) || count < 1 || count > 10) {\n      return null;\n    }\n    return price * count;\n  }\n  console.log(totalFromInput(2500, '1'));   // 2500\n  console.log(totalFromInput(2500, '10'));  // 25000\n  console.log(totalFromInput(2500, ''));    // null\n  console.log(totalFromInput(2500, '11'));  // null\n  console.log(totalFromInput(2500, '2.5')); // null\n  console.log(totalFromInput(0, '2'));      // 0\n}",
-      result:
-        "1 и 10 проходят, пустое поле, 11 и дробь дают null. Нулевая цена даёт сумму 0.",
-      variation:
-        "Смените цену с 2500 на 5000 при количестве '2'. Проговорите, почему проверка количества не меняется.",
-    },
     mistakes: [
       "Поле пустое, а расчёт считает 0 билетов. После Number проверяйте допустимый диапазон.",
       "Тариф меняется, а сумма остаётся прежней. Проверьте, что и обработчик тарифа, и обработчик поля вызывают одну функцию обновления.",
@@ -463,21 +350,6 @@ export const lectures: Record<number, Lecture> = {
         code: "const error = validateContact(name, email, message);\nstatus.textContent = error || 'Данные проверены';",
       },
     ],
-    live: {
-      title: "Возвращаем первую ошибку",
-      setup:
-        "Наберите пример в консоли. Возьмём два обязательных поля, чтобы сосредоточиться на порядке проверок. Email добавите между ними в практике.",
-      steps: [
-        "Запишите проверки имени и сообщения через trim и ранний return.",
-        "Вызовите функцию с пустым именем и пустым сообщением. Объясните, почему выводится только первая ошибка.",
-        "Исправьте имя, затем сообщение. Выведите итоговое сообщение вместо пустой строки.",
-      ],
-      code: "{\n  function checkFields(name, message) {\n    if (!name.trim()) return 'Введите имя';\n    if (!message.trim()) return 'Введите сообщение';\n    return '';\n  }\n  console.log(checkFields('   ', ''));\n  console.log(checkFields('Анна', '   '));\n  console.log(checkFields('Анна', 'Привет!') || 'Данные проверены');\n}",
-      result:
-        "Последовательно появляются «Введите имя», «Введите сообщение» и «Данные проверены».",
-      variation:
-        "Поменяйте проверки местами и отправьте оба поля пустыми. Обсудите, почему порядок проверок заметен пользователю.",
-    },
     mistakes: [
       "После отправки исчезает сообщение об ошибке. Проверьте preventDefault и убедитесь, что подписались на submit у формы.",
       "После исправления всё ещё видна старая ошибка. Прочитайте поля заново при каждой отправке и обновите textContent для обоих исходов.",
@@ -521,21 +393,6 @@ export const lectures: Record<number, Lecture> = {
         code: "// Короткий маршрут проверки\n// 1. Открыть и закрыть меню\n// 2. Получить пустое расписание и вернуть список\n// 3. Исправить неверное количество билетов\n// 4. Повторно отправить исправленную форму",
       },
     ],
-    live: {
-      title: "Воспроизводим и устраняем рассинхронизацию",
-      setup:
-        "Откройте страницу «О фестивале» готового NOVA. Выполните пример в её консоли. Он берёт блок и кнопку этой страницы.",
-      steps: [
-        "Посмотрите на hidden и подпись до изменений. Временно переключите только hidden и сравните признаки.",
-        "Соберите функцию, которая обновляет блок, подпись и aria-expanded из одного состояния.",
-        "Вызовите её два раза подряд. Сравните значения и повторите проверку уже в редакторе своего NOVA.",
-      ],
-      code: "{\n  const button = document.querySelector('#about-toggle');\n  const details = document.querySelector('#about-details');\n  function toggleDetails() {\n    details.hidden = !details.hidden;\n    const isOpen = !details.hidden;\n    button.textContent = isOpen ? 'Скрыть' : 'Подробнее';\n    button.setAttribute('aria-expanded', String(isOpen));\n    console.log(isOpen, button.textContent, button.getAttribute('aria-expanded'));\n  }\n  toggleDetails();\n  toggleDetails();\n}",
-      result:
-        "С исходно закрытым блоком сначала видны true, «Скрыть» и 'true', затем false, «Подробнее» и 'false'.",
-      variation:
-        "Проверьте тот же код в узком окне. Назовите ещё один сценарий NOVA, который стоит перепроверить перед показом.",
-    },
     mistakes: [
       "Подпись показывает противоположное состояние. Вычислите isOpen после переключения hidden, а не до него.",
       "Сайт запускается только в предпросмотре. Распакуйте весь архив и откройте index.html из папки, чтобы CSS, данные и скрипты сохранили относительные пути.",

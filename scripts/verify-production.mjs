@@ -29,11 +29,35 @@ try {
   await phases.getByRole("button", { name: /Лекция.*30 мин/ }).waitFor();
   assert.equal(await phases.locator("button, a").count(), 3);
   const outline = page.getByRole("navigation", { name: "Содержание лекции" });
-  await outline.getByRole("button", { name: /Пишем вместе/ }).waitFor();
+  await outline.getByRole("button", { name: /Разбор заданий/ }).waitFor();
   assert.equal(await outline.getByRole("button").count(), 6);
   if (process.argv[5])
     await page.screenshot({ path: process.argv[5], fullPage: false });
-  await page.getByRole("heading", { name: "Как это работает" }).waitFor();
+  const firstVisual = page.locator(".lecture-figure").first();
+  await firstVisual
+    .frameLocator("iframe")
+    .getByRole("heading", { name: "Фестиваль NOVA" })
+    .waitFor();
+  await firstVisual.getByText(/button#hello/).waitFor();
+  await outline
+    .getByRole("button", { name: /Как JavaScript видит HTML/ })
+    .click();
+  if (process.argv[11]) {
+    await page.evaluate(
+      () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        ),
+    );
+    await page.screenshot({ path: process.argv[11], fullPage: false });
+  }
+  await outline.getByRole("button", { name: /Разбор заданий/ }).click();
+  await page.getByLabel("Заготовка задачи 1", { exact: true }).waitFor();
+  await page
+    .getByRole("heading", { name: "Практика NOVA", exact: true })
+    .waitFor();
+  if (process.argv[12])
+    await page.screenshot({ path: process.argv[12], fullPage: false });
   await page.getByText("План пары", { exact: false }).click();
   await page.getByText("78–90 мин", { exact: true }).waitFor();
   await page.getByText("План пары", { exact: false }).click();
@@ -158,6 +182,8 @@ try {
       classroomFlow: true,
       courseNavigator: true,
       lectureOutline: true,
+      visualLecture: true,
+      assignmentBreakdown: true,
       formattedHtml: true,
       routeReload: true,
       monaco: true,

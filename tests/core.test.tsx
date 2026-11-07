@@ -6,6 +6,10 @@ import { instrument } from "../src/engine/instrument";
 import { validMessage, isResults } from "../src/engine/execution";
 import { lessons } from "../src/content/course";
 import { lectures } from "../src/content/lectures";
+import {
+  assignmentGuides,
+  lectureExamples,
+} from "../src/content/lectureExamples";
 import { projectFiles, referenceCodes } from "../src/projects/nova";
 import { pairMinutes, sessions } from "../src/content/sessions";
 describe("Курс и экспортируемый проект", () => {
@@ -17,7 +21,12 @@ describe("Курс и экспортируемый проект", () => {
     }
     for (const lesson of lessons) {
       expect(lectures[lesson.id].concepts).toHaveLength(3);
-      expect(() => instrument(lectures[lesson.id].live.code)).not.toThrow();
+      expect(lectureExamples[lesson.id]).toHaveLength(
+        lectures[lesson.id].concepts.length,
+      );
+      expect(assignmentGuides[lesson.id].trainer).toHaveLength(
+        lesson.exercises.length,
+      );
       expect(sessions[lesson.id].practice).toHaveLength(3);
       expect(lesson.exercises).toHaveLength(2);
       expect(

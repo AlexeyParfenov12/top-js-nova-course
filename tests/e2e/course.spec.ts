@@ -19,18 +19,29 @@ test("Простой маршрут от лекции через две зада
     phases.getByRole("link", { name: /Практика NOVA.*35 мин/ }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Пишем вместе" }),
+    page.getByRole("heading", { name: "Разбор заданий" }),
   ).toBeVisible();
+  const htmlExample = page.locator(".lecture-figure").first();
+  await expect(htmlExample.locator("pre")).toContainText('<button id="hello">');
   await expect(
-    page.getByRole("heading", { name: "Как это работает" }),
+    htmlExample
+      .frameLocator("iframe")
+      .getByRole("button", { name: "Я с вами!" }),
   ).toBeVisible();
+  await expect(htmlExample.getByText(/button#hello/)).toBeVisible();
   const contents = page.getByRole("navigation", { name: "Содержание лекции" });
   await expect(contents.getByRole("button")).toHaveCount(6);
-  await contents.getByRole("button", { name: /Пишем вместе/ }).click();
+  await contents.getByRole("button", { name: /Разбор заданий/ }).click();
   await expect(
-    page.getByRole("heading", { name: /Пишем вместе/ }),
+    page.getByRole("heading", { name: /Разбор заданий/ }),
   ).toBeFocused();
   await expect(page).toHaveURL(/#\/lesson\/1$/);
+  const starter = await page
+    .getByLabel("Заготовка задачи 1", { exact: true })
+    .textContent();
+  await expect(
+    page.getByText(/обработчик меняет текст в отдельном #greeting/),
+  ).toBeVisible();
   const navigator = page.getByRole("dialog", { name: "Навигатор курса" });
   await page.getByRole("button", { name: "Навигатор", exact: true }).click();
   await expect(navigator.getByText(/2 пары сегодня и 8 пар/)).toBeVisible();
@@ -56,6 +67,7 @@ test("Простой маршрут от лекции через две зада
     page.getByRole("heading", { name: "Поменяй заголовок" }),
   ).toBeVisible();
   await expect(page.locator(".exercise")).toHaveCount(1);
+  await expect(page.getByLabel("Код упражнения 1")).toHaveValue(starter ?? "");
   await page.getByRole("button", { name: "Ко второй задаче" }).click();
   await page
     .getByLabel("Код упражнения 2")
@@ -421,7 +433,7 @@ test("Лекция, тренажёр, перенос JSON и отказ от п�
 }) => {
   await page.goto("#/lesson/1");
   await expect(
-    page.getByRole("heading", { name: "Пишем вместе" }),
+    page.getByRole("heading", { name: "Разбор заданий" }),
   ).toBeVisible();
   await page
     .locator(".lesson-tabs")

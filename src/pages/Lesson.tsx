@@ -8,7 +8,7 @@ import {
   Presentation,
 } from "lucide-react";
 import { lessons } from "../content/course";
-import { lectures, type Lecture } from "../content/lectures";
+import { lectures } from "../content/lectures";
 import { pair, pairMinutes, sessions } from "../content/sessions";
 import type { Lesson } from "../content/types";
 import { useProgress } from "../engine/persistence";
@@ -106,12 +106,8 @@ function Classroom({ lesson }: { lesson: Lesson }) {
 
       {phase === "lecture" ? (
         <>
-          <PairPlan
-            session={session}
-            lecture={lecture}
-            feature={lesson.feature}
-          />
-          <CourseLecture lecture={lecture} />
+          <PairPlan session={session} feature={lesson.feature} />
+          <CourseLecture lecture={lecture} lesson={lesson} />
         </>
       ) : (
         <section
@@ -171,11 +167,9 @@ function Classroom({ lesson }: { lesson: Lesson }) {
 
 function PairPlan({
   session,
-  lecture,
   feature,
 }: {
   session: (typeof sessions)[number];
-  lecture: Lecture;
   feature: string;
 }) {
   const plan = [
@@ -191,8 +185,8 @@ function PairPlan({
     ],
     [
       "17–27",
-      "Живой пример",
-      lecture.live.title + ". Наберите код и проверьте результат вместе.",
+      "Разбор заданий",
+      "Посмотрите заготовки из тренажёра и практики NOVA. Разберите, что уже написано, что нужно дописать и какой результат ожидается.",
     ],
     [
       "27–30",

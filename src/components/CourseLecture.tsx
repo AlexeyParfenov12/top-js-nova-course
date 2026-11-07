@@ -1,17 +1,28 @@
 import { BookOpen } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Lecture } from "../content/lectures";
+import type { Lesson } from "../content/types";
+import { assignmentGuides, lectureExamples } from "../content/lectureExamples";
+import { LectureFigure } from "./LectureFigure";
 
 const conceptTimes = ["5–9", "9–13", "13–17"];
 
-export function CourseLecture({ lecture }: { lecture: Lecture }) {
+export function CourseLecture({
+  lecture,
+  lesson,
+}: {
+  lecture: Lecture;
+  lesson: Lesson;
+}) {
+  const examples = lectureExamples[lesson.id];
+  const guide = assignmentGuides[lesson.id];
   const chapters = [
     { id: "lecture-start", title: "Зачем это нужно" },
     ...lecture.concepts.map((concept, index) => ({
       id: `lecture-concept-${index + 1}`,
       title: concept.title,
     })),
-    { id: "lecture-example", title: "Пишем вместе" },
+    { id: "lecture-example", title: "Разбор заданий" },
     { id: "lecture-end", title: "Ошибки и итог" },
   ];
 
@@ -59,35 +70,45 @@ export function CourseLecture({ lecture }: { lecture: Lecture }) {
             >
               {concept.title}
             </Chapter>
-            {concept.paragraphs.map((text) => (
+            <p>{concept.paragraphs[0]}</p>
+            <LectureFigure code={concept.code} example={examples[index]} />
+            {concept.paragraphs.slice(1).map((text) => (
               <p key={text}>{text}</p>
             ))}
-            <pre>
-              <code>{concept.code}</code>
-            </pre>
           </section>
         ))}
         <section>
           <Chapter number={5} id="lecture-example" time="17–27">
-            Пишем вместе
+            Разбор заданий
           </Chapter>
-          <h3>{lecture.live.title}</h3>
-          <p>{lecture.live.setup}</p>
-          <h3>Как это работает</h3>
-          <ol>
-            {lecture.live.steps.map((step) => (
-              <li key={step}>{step}</li>
+          <p>
+            Здесь разобраны те же заготовки, которые откроются во вкладках
+            «Тренажёр» и «Практика NOVA». Сначала посмотрите, что предстоит
+            дописать и какой результат нужно получить.
+          </p>
+          <h3>Две задачи тренажёра</h3>
+          <div className="lecture-assignment-list">
+            {lesson.exercises.map((exercise, index) => (
+              <div className="lecture-assignment" key={exercise.slot}>
+                <h4>
+                  {index + 1}. {exercise.title}
+                </h4>
+                <pre aria-label={`Заготовка задачи ${index + 1}`}>
+                  <code>{exercise.starter}</code>
+                </pre>
+                <p>{guide.trainer[index]}</p>
+              </div>
             ))}
-          </ol>
-          <pre>
-            <code>{lecture.live.code}</code>
-          </pre>
-          <p>
-            <strong>Что увидим.</strong> {lecture.live.result}
-          </p>
-          <p>
-            <strong>Попробуйте изменить.</strong> {lecture.live.variation}
-          </p>
+          </div>
+          <h3>Практика NOVA</h3>
+          <p>{guide.practice}</p>
+          <LectureFigure
+            code={lesson.starter.trimEnd()}
+            example={{
+              panels: [{ title: "Ожидаемый результат", lines: guide.sample }],
+              caption: guide.result,
+            }}
+          />
         </section>
         <section>
           <Chapter number={6} id="lecture-end" time="27–30">
