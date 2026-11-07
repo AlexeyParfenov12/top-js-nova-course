@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Check, Lightbulb, RotateCcw } from "lucide-react";
 import type { Exercise } from "../content/types";
+import { taskSteps } from "../content/taskSteps";
 import { useProgress } from "../engine/persistence";
 import { checkInSandbox } from "../engine/execution";
+import { useAutoCheck } from "../engine/useAutoCheck";
 import { CodeEditor } from "./CodeEditor";
 import { SyntaxCode } from "./SyntaxCode";
 export default function PracticeExercise({
@@ -20,14 +22,18 @@ export default function PracticeExercise({
   const [message, setMessage] = useState("");
   const [hint, setHint] = useState(false);
   const code = progress.exerciseDrafts[key] ?? exercise.starter;
-  async function check() {
-    setBusy(true);
+  async function check(manual: boolean, signal: AbortSignal) {
+    if (manual) setBusy(true);
+    setMessage(manual ? "Проверяем…" : "Автопроверка…");
     const results = await checkInSandbox(
       "index",
       {},
       { "scripts/stage-10.js": code },
       `test('Упражнение',()=>{${exercise.tests}});`,
+      undefined,
+      signal,
     );
+    if (signal.aborted) return;
     const passed = results.length > 0 && results.every((r) => r.passed);
     update((p) =>
       (p.exerciseDrafts[key] ?? exercise.starter) === code
@@ -42,8 +48,9 @@ export default function PracticeExercise({
             .map((r) => r.detail)
             .join(" · "),
     );
-    setBusy(false);
+    if (manual) setBusy(false);
   }
+  const autoCheck = useAutoCheck(check);
   return (
     <article className="exercise">
       <div className="spread">
@@ -56,6 +63,11 @@ export default function PracticeExercise({
         )}
       </div>
       <p>{exercise.prompt}</p>
+      <ol className="trainer-steps" aria-label="Шаги задания">
+        {taskSteps[lessonId].trainer[index].map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
       <div className="mini-editor-caption">
         <span>JavaScript</span>
         <span>Подсказки при вводе · Ctrl+Пробел</span>
@@ -75,12 +87,13 @@ export default function PracticeExercise({
               exerciseDrafts: { ...p.exerciseDrafts, [key]: nextCode },
               exercises: { ...p.exercises, [key]: false },
             }));
-            setMessage("");
+            setMessage("Проверим после паузы в наборе…");
+            autoCheck.schedule();
           }}
         />
       </div>
       <div className="exercise-actions">
-        <button className="primary" onClick={check} disabled={busy}>
+        <button className="primary" onClick={autoCheck.checkNow} disabled={busy}>
           {busy ? "Проверяем…" : "Проверить"}
         </button>
         <button onClick={() => setHint(!hint)}>
@@ -91,6 +104,7 @@ export default function PracticeExercise({
           aria-label={`Сбросить упражнение ${index + 1}`}
           disabled={busy}
           onClick={() => {
+            autoCheck.cancel();
             update((p) => ({
               ...p,
               exerciseDrafts: { ...p.exerciseDrafts, [key]: exercise.starter },
@@ -112,7 +126,13 @@ export default function PracticeExercise({
       {message && (
         <p
           role="status"
-          className={progress.exercises[key] ? "success" : "error-text"}
+          className={
+            message.endsWith("…")
+              ? undefined
+              : progress.exercises[key]
+                ? "success"
+                : "error-text"
+          }
         >
           {message}
         </p>

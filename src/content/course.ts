@@ -1,4 +1,21 @@
 import type { Lesson } from "./types";
+
+const speakerCardSolution = `function createCard(person) {
+  const card = document.createElement('article');
+  card.className = 'speaker-card';
+  const name = document.createElement('h2');
+  name.textContent = person.name;
+  const role = document.createElement('p');
+  role.textContent = person.role;
+  card.append(name, role);
+  return card;
+}`;
+
+const emailFormat = String.raw`function hasEmailFormat(email) {
+  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return pattern.test(email.trim());
+}`;
+
 export const days = [
   "Основы JavaScript",
   "DOM и работа с данными",
@@ -20,9 +37,12 @@ export const lessons: Lesson[] = [
         prompt:
           "Измени заголовок страницы. В заготовке уже есть функция renameTitle(text); внутри найди #hero-title и запиши переданный текст.",
         starter:
-          "function renameTitle(text) {\n  // Найди элемент и измени textContent\n}",
+          "function renameTitle(text) {\n  // Найди #hero-title, сохрани его в title и запиши text в title.textContent.\n}",
         solution:
-          "function renameTitle(text) { document.querySelector('#hero-title').textContent=text; }",
+          `function renameTitle(text) {
+  const title = document.querySelector('#hero-title');
+  title.textContent = text;
+}`,
         tests:
           "renameTitle('Первый запуск'); equal(q('#hero-title').textContent,'Первый запуск'); renameTitle('Мой NOVA'); equal(q('#hero-title').textContent,'Мой NOVA');",
         hint: "Имя text — уже готовый вход функции. Его не нужно заключать в кавычки.",
@@ -33,9 +53,14 @@ export const lessons: Lesson[] = [
         prompt:
           "Настрой кнопку: после вызова connectButton() клик по #hello должен менять её текст на «Я иду на NOVA». До клика текст не меняется.",
         starter:
-          "function connectButton() {\n  const button = document.querySelector('#hello');\n  // Дополни обработчик\n}",
+          "function connectButton() {\n  const button = document.querySelector('#hello');\n  // Подключи click к button. Внутри обработчика измени надпись кнопки.\n}",
         solution:
-          "function connectButton(){const button=document.querySelector('#hello');button.addEventListener('click',()=>{button.textContent='Я иду на NOVA';});}",
+          `function connectButton() {
+  const button = document.querySelector('#hello');
+  button.addEventListener('click', () => {
+    button.textContent = 'Я иду на NOVA';
+  });
+}`,
         tests:
           "const before=q('#hello').textContent; connectButton(); equal(q('#hello').textContent,before); q('#hello').click(); equal(q('#hello').textContent,'Я иду на NOVA');",
         hint: "Записывай новый textContent внутри функции, переданной в addEventListener.",
@@ -48,11 +73,29 @@ export const lessons: Lesson[] = [
       "Выведи приветствие только после клика.",
     ],
     starter:
-      "// 1. Найди #hero-title и измени его textContent\nconst title = document.querySelector('#hero-title');\ntitle.textContent = 'NOVA';\n\n// 2. Найди #hello и добавь обработчик click\n",
+      `const title = document.querySelector('#hero-title');
+if (title) {
+  // 1. Замени надпись в следующей строке. Оставь присваивание внутри if (title).
+  title.textContent = 'NOVA';
+
+  const button = document.querySelector('#hello');
+  const greeting = document.querySelector('#greeting');
+  // 2. Подключи click к button. Внутри функции запиши приветствие в greeting.textContent.
+}
+`,
     solution:
-      "const title = document.querySelector('#hero-title');\nif (title) {\n  title.textContent = 'NOVA - будущее начинается здесь';\n  document.querySelector('#hello').addEventListener('click', () => {\n    document.querySelector('#greeting').textContent = 'Увидимся на NOVA!';\n  });\n}",
+      `const title = document.querySelector('#hero-title');
+if (title) {
+  title.textContent = 'NOVA - будущее начинается здесь';
+
+  const button = document.querySelector('#hello');
+  const greeting = document.querySelector('#greeting');
+  button.addEventListener('click', () => {
+    greeting.textContent = 'Увидимся на NOVA!';
+  });
+}`,
     hints: [
-      "Найди все три элемента с помощью document.querySelector.",
+      "Все три элемента уже найдены. Оставь команды внутри блока if (title), который работает на главной.",
       "Изменяй .textContent. Обработчик регистрируется через addEventListener.",
       "button.addEventListener('click', () => { greeting.textContent = 'Увидимся на NOVA!'; });",
     ],
@@ -74,8 +117,10 @@ export const lessons: Lesson[] = [
         slot: 0,
         title: "Посчитай цену заказа",
         prompt: "Функция total получает цену и количество. Верни стоимость.",
-        starter: "function total(price, count) {\n  return 0;\n}",
-        solution: "function total(price, count) { return price * count; }",
+        starter: "function total(price, count) {\n  return 0; // Замени 0 на произведение price и count.\n}",
+        solution: `function total(price, count) {
+  return price * count;
+}`,
         tests:
           "equal(total(2500,2),5000); equal(total(5000,3),15000); equal(total(10,0),0);",
         hint: "Используй умножение price * count.",
@@ -85,9 +130,12 @@ export const lessons: Lesson[] = [
         title: "Преобразуй строку в число",
         prompt: "Цена приходит строкой. Верни число — стоимость count билетов.",
         starter:
-          "function parseTotal(rawPrice,count) {\n  return rawPrice + count;\n}",
+          "function parseTotal(rawPrice,count) {\n  return rawPrice + count; // Сначала преврати rawPrice в число, затем умножь на count.\n}",
         solution:
-          "function parseTotal(rawPrice,count){return Number(rawPrice)*count;}",
+          `function parseTotal(rawPrice, count) {
+  const price = Number(rawPrice);
+  return price * count;
+}`,
         tests:
           "equal(parseTotal('2500',2),5000); equal(parseTotal('12000',3),36000);",
         hint: "Преобразуй rawPrice через Number перед умножением.",
@@ -100,9 +148,17 @@ export const lessons: Lesson[] = [
       "В #base-total отображается 5000 ₽.",
     ],
     starter:
-      "window.calculateBase = function(price, count) {\n  return 0;\n};\n// Покажи результат в #base-total\n",
+      "window.calculateBase = function(price, count) {\n  return 0; // Верни произведение цены и количества.\n};\n// Найди #base-total. Если он есть, вызови calculateBase(2500, 2) и покажи сумму со знаком ₽.\n",
     solution:
-      "window.calculateBase = function(price, count) {\n  return price * count;\n};\nconst output = document.querySelector('#base-total');\nif (output) output.textContent = window.calculateBase(2500, 2) + ' ₽';",
+      `window.calculateBase = function(price, count) {
+  return price * count;
+};
+
+const output = document.querySelector('#base-total');
+if (output) {
+  const total = window.calculateBase(2500, 2);
+  output.textContent = total + ' ₽';
+}`,
     hints: [
       "Сначала реализуй чистую функцию, затем найди элемент вывода.",
       "return price * count;",
@@ -128,9 +184,11 @@ export const lessons: Lesson[] = [
         prompt:
           "toggleClass(node) должна переключать класс active и возвращать новое состояние.",
         starter:
-          "function toggleClass(node) {\n  // Переключи класс и верни boolean\n}",
+          "function toggleClass(node) {\n  // Переключи 'active' через node.classList.toggle и верни его результат.\n}",
         solution:
-          "function toggleClass(node){return node.classList.toggle('active');}",
+          `function toggleClass(node) {
+  return node.classList.toggle('active');
+}`,
         tests:
           "const node=document.createElement('div'); equal(toggleClass(node),true); ok(node.classList.contains('active')); equal(toggleClass(node),false); ok(!node.classList.contains('active'));",
         hint: "classList.toggle возвращает boolean.",
@@ -141,12 +199,16 @@ export const lessons: Lesson[] = [
         prompt:
           "Выдели выбранную карточку: функция choose(cards,selected) оставляет active только у selected.",
         starter:
-          "function choose(cards,selected) {\n  selected.classList.add('active');\n}",
+          "function choose(cards, selected) {\n  // Пройди по cards через forEach. Передай card === selected вторым аргументом toggle.\n}",
         solution:
-          "function choose(cards,selected){cards.forEach(card=>card.classList.remove('active'));selected.classList.add('active');}",
+          `function choose(cards, selected) {
+  cards.forEach((card) => {
+    card.classList.toggle('active', card === selected);
+  });
+}`,
         tests:
           "const cards=[document.createElement('button'),document.createElement('button')];choose(cards,cards[0]);choose(cards,cards[1]);ok(!cards[0].classList.contains('active'));ok(cards[1].classList.contains('active'));",
-        hint: "Сними старое выделение со всех элементов перед добавлением нового.",
+        hint: "В toggle второй аргумент ставит класс при true и снимает при false. Сравни card с selected.",
       },
     ],
     task: "На #menu-toggle переключай класс open у #site-nav и aria-expanded у кнопки. На странице направлений сделай ровно одну .track.active при выборе карточки. Покажи её data-track в #track-choice.",
@@ -156,13 +218,29 @@ export const lessons: Lesson[] = [
       "Выбранное направление имеет active; старое теряет класс.",
     ],
     starter:
-      "const menu = document.querySelector('#menu-toggle');\nconst nav = document.querySelector('#site-nav');\n// Добавь переключение меню\n\n// Добавь обработчики карточкам .track\n",
+      "const menu = document.querySelector('#menu-toggle');\nconst nav = document.querySelector('#site-nav');\n// Подпиши menu на click. Переключи 'open' у nav и запиши новое состояние в aria-expanded.\n\n// Найди .track. В клике обнови active у всей группы и покажи выбранный data-track.\n",
     solution:
-      "const menu = document.querySelector('#menu-toggle');\nconst nav = document.querySelector('#site-nav');\nmenu.addEventListener('click', () => {\n  const open = nav.classList.toggle('open');\n  menu.setAttribute('aria-expanded', String(open));\n});\ndocument.querySelectorAll('.track').forEach(card => {\n  card.addEventListener('click', () => {\n    document.querySelectorAll('.track').forEach(item => item.classList.remove('active'));\n    card.classList.add('active');\n    document.querySelector('#track-choice').textContent = card.dataset.track;\n  });\n});",
+      `const menu = document.querySelector('#menu-toggle');
+const nav = document.querySelector('#site-nav');
+menu.addEventListener('click', () => {
+  const isOpen = nav.classList.toggle('open');
+  menu.setAttribute('aria-expanded', String(isOpen));
+});
+
+const cards = document.querySelectorAll('.track');
+cards.forEach((selected) => {
+  selected.addEventListener('click', () => {
+    cards.forEach((card) => {
+      card.classList.toggle('active', card === selected);
+    });
+    const choice = document.querySelector('#track-choice');
+    choice.textContent = selected.dataset.track;
+  });
+});`,
     hints: [
       "toggle возвращает новое состояние класса.",
-      "Сначала убери active со всех карточек, затем добавь выбранной.",
-      "card.dataset.track читает HTML-атрибут data-track. menu.setAttribute('aria-expanded', String(open));",
+      "Внутри клика пройди по всем карточкам и используй toggle('active', card === selected).",
+      "selected.dataset.track читает HTML-атрибут data-track. menu.setAttribute('aria-expanded', String(isOpen));",
     ],
     tests:
       "test('Меню открывается',()=>{q('#menu-toggle').click(); ok(q('#site-nav').classList.contains('open')); equal(q('#menu-toggle').getAttribute('aria-expanded'),'true');}); test('Меню закрывается',()=>{q('#menu-toggle').click(); ok(!q('#site-nav').classList.contains('open'));}); test('Выбор направления',()=>{q('.track').click(); equal(document.querySelectorAll('.track.active').length,1); equal(q('#track-choice').textContent,q('.track').dataset.track);}); test('Старый выбор сбрасывается',()=>{const cards=document.querySelectorAll('.track'); cards[1].click(); equal(document.querySelectorAll('.track.active').length,1); ok(cards[1].classList.contains('active'));});",
@@ -184,9 +262,11 @@ export const lessons: Lesson[] = [
         prompt:
           "Создай bindClick(button,callback): зарегистрируй callback для click, не вызывая его сразу.",
         starter:
-          "function bindClick(button,callback) {\n  // Передай функцию обработчиком\n}",
+          "function bindClick(button,callback) {\n  // Добавь button.addEventListener для 'click'. Передай callback без вызова.\n}",
         solution:
-          "function bindClick(button,callback){button.addEventListener('click',callback);}",
+          `function bindClick(button, callback) {
+  button.addEventListener('click', callback);
+}`,
         tests:
           "const button=document.createElement('button');let count=0;bindClick(button,()=>count++);equal(count,0);button.click();button.click();equal(count,2);",
         hint: "В addEventListener передаётся callback без скобок.",
@@ -197,9 +277,13 @@ export const lessons: Lesson[] = [
         prompt:
           "Обработчик keyboardAction(event,close) вызывает close только для Escape.",
         starter:
-          "function keyboardAction(event,close) {\n  // Проверь имя клавиши\n}",
+          "function keyboardAction(event,close) {\n  // Сравни event.key с 'Escape'. Только внутри if вызови close().\n}",
         solution:
-          "function keyboardAction(event,close){if(event.key==='Escape')close();}",
+          `function keyboardAction(event, close) {
+  if (event.key === 'Escape') {
+    close();
+  }
+}`,
         tests:
           "let count=0;keyboardAction({key:'Enter'},()=>count++);equal(count,0);keyboardAction({key:'Escape'},()=>count++);equal(count,1);",
         hint: "Сравни event.key со строкой Escape.",
@@ -212,13 +296,41 @@ export const lessons: Lesson[] = [
       "Escape закрывает открытое окно.",
     ],
     starter:
-      "const dialog = document.querySelector('#festival-modal');\nif (dialog) {\n  // Объяви функции open и close\n  // Подключи три обработчика\n}",
+      `const dialog = document.querySelector('#festival-modal');
+if (dialog) {
+  // Объяви openDialog и closeDialog. Проверь dialog.open перед действием.
+  // Подключи клики к #open-modal и #close-modal. На keydown обработай только Escape.
+}
+`,
     solution:
-      "const dialog = document.querySelector('#festival-modal');\nif (dialog) {\n  const open = () => { if (!dialog.open) dialog.showModal(); };\n  const close = () => dialog.close();\n  document.querySelector('#open-modal').addEventListener('click', open);\n  document.querySelector('#close-modal').addEventListener('click', close);\n  document.addEventListener('keydown', event => {\n    if (event.key === 'Escape') close();\n  });\n}",
+      `const dialog = document.querySelector('#festival-modal');
+if (dialog) {
+  function openDialog() {
+    if (!dialog.open) {
+      dialog.showModal();
+    }
+  }
+
+  function closeDialog() {
+    if (dialog.open) {
+      dialog.close();
+    }
+  }
+
+  const openButton = document.querySelector('#open-modal');
+  const closeButton = document.querySelector('#close-modal');
+  openButton.addEventListener('click', openDialog);
+  closeButton.addEventListener('click', closeDialog);
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeDialog();
+    }
+  });
+}`,
     hints: [
       "Найди dialog и обе кнопки.",
       "Передай функцию в addEventListener без вызова.",
-      "В keydown проверь event.key === 'Escape', затем вызови dialog.close().",
+      "В keydown проверь event.key === 'Escape', затем вызови closeDialog().",
     ],
     tests:
       "test('Открытие окна',()=>{q('#open-modal').click(); ok(q('#festival-modal').open);}); test('Закрытие кнопкой',()=>{q('#close-modal').click(); ok(!q('#festival-modal').open);}); test('Повторное открытие и Escape',()=>{q('#open-modal').click(); document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); ok(!q('#festival-modal').open);});",
@@ -239,9 +351,15 @@ export const lessons: Lesson[] = [
         title: "Собери имена",
         prompt: "Собери имена через forEach и верни массив.",
         starter:
-          "function names(list) {\n  const result = [];\n  return result;\n}",
+          "function names(list) {\n  const result = [];\n  return result; // До возврата пройди по list и добавь в result каждое item.name.\n}",
         solution:
-          "function names(list) { const result=[]; list.forEach(item => result.push(item.name)); return result; }",
+          `function names(list) {
+  const result = [];
+  list.forEach((item) => {
+    result.push(item.name);
+  });
+  return result;
+}`,
         tests:
           "equal(JSON.stringify(names([{name:'А'},{name:'Б'}])),JSON.stringify(['А','Б'])); equal(names([]).length,0);",
         hint: "list.forEach(item => result.push(item.name));",
@@ -252,28 +370,49 @@ export const lessons: Lesson[] = [
         prompt:
           "createCard(person) возвращает новый article с классом speaker-card, h2 и p.",
         starter:
-          "function createCard(person) {\n  // Создай и верни DOM-элемент\n}",
+          "function createCard(person) {\n  // Создай article.speaker-card. Добавь h2 с именем и p с ролью. Верни карточку.\n}",
         solution:
-          "function createCard(person){const card=document.createElement('article');card.className='speaker-card';const h=document.createElement('h2');h.textContent=person.name;const p=document.createElement('p');p.textContent=person.role;card.append(h,p);return card;}",
+          speakerCardSolution,
         tests:
           "const a=createCard({name:'Ада',role:'AI'}),b=createCard({name:'Марк',role:'Web'}); equal(a.tagName,'ARTICLE');ok(a.classList.contains('speaker-card'));equal(a.querySelector('h2').textContent,'Ада');equal(b.querySelector('p').textContent,'Web');ok(a!==b);",
         hint: "Каждый вызов создаёт новый article. Настрой дочерние узлы и верни карточку.",
       },
     ],
-    task: "Создай window.renderSpeakers(data). Из каждого {name, role} построй article.speaker-card с h2 и p внутри #speakers-list. Очищай список при повторном вызове. Вызови функцию с window.novaSpeakers — готовыми данными страницы.",
+    task: "Перенеси createCard из тренажёра. Создай window.renderSpeakers(data), которая очищает #speakers-list и добавляет карточку на каждого спикера через createCard. Вызови функцию с готовыми данными window.novaSpeakers.",
     requirements: [
       "Каждый объект становится отдельной карточкой.",
       "Имена и роли берутся из данных.",
       "Повторный рендер и пустой массив очищают старый список.",
     ],
     starter:
-      "window.renderSpeakers = function(data) {\n  // Найди #speakers-list\n  // Очисти контейнер и создай карточки\n};\nif (document.querySelector('#speakers-list')) {\n  window.renderSpeakers(window.novaSpeakers);\n}",
+      `// Перенеси из тренажёра createCard(person), которая возвращает готовую карточку.
+
+const list = document.querySelector('#speakers-list');
+window.renderSpeakers = function(data) {
+  if (list) {
+    // Очисти list. Для каждого person создай карточку через createCard и добавь её в list.
+  }
+};
+window.renderSpeakers(window.novaSpeakers);
+`,
     solution:
-      "window.renderSpeakers = function(data) {\n  const list = document.querySelector('#speakers-list');\n  if (!list) return;\n  list.replaceChildren();\n  data.forEach(person => {\n    const card = document.createElement('article');\n    card.className = 'speaker-card';\n    const name = document.createElement('h2');\n    name.textContent = person.name;\n    const role = document.createElement('p');\n    role.textContent = person.role;\n    card.append(name, role);\n    list.append(card);\n  });\n};\nwindow.renderSpeakers(window.novaSpeakers || []);",
+      `${speakerCardSolution}
+
+const list = document.querySelector('#speakers-list');
+window.renderSpeakers = function(data) {
+  if (list) {
+    list.replaceChildren();
+    data.forEach((person) => {
+      const card = createCard(person);
+      list.append(card);
+    });
+  }
+};
+window.renderSpeakers(window.novaSpeakers);`,
     hints: [
-      "Сначала list.replaceChildren(), затем data.forEach.",
-      "Внутри цикла создай article, h2 и p.",
-      "Заполняй textContent и используй card.append(name, role), list.append(card).",
+      "Перенеси createCard(person) из второй задачи тренажёра.",
+      "В renderSpeakers сначала вызови list.replaceChildren(), затем data.forEach.",
+      "Внутри обхода создай карточку через createCard(person), а затем вызови list.append(card).",
     ],
     tests:
       "test('Три исходных спикера',()=>equal(document.querySelectorAll('.speaker-card').length,3)); test('Новые данные и безопасный текст',()=>{window.renderSpeakers([{name:'<b>Ада</b>',role:'Web'}]); equal(q('.speaker-card h2').textContent,'<b>Ада</b>'); equal(q('.speaker-card p').textContent,'Web'); equal(document.querySelectorAll('.speaker-card').length,1);}); test('Пустой список',()=>{window.renderSpeakers([]); equal(q('#speakers-list').children.length,0);});",
@@ -293,9 +432,11 @@ export const lessons: Lesson[] = [
         slot: 0,
         title: "Оставь события нужного дня",
         prompt: "Верни только события указанного дня.",
-        starter: "function byDay(data, day) {\n  return [];\n}",
+        starter: "function byDay(data, day) {\n  return []; // Верни data.filter с условием item.day === day.\n}",
         solution:
-          "function byDay(data,day) { return data.filter(item => item.day === day); }",
+          `function byDay(data, day) {
+  return data.filter((item) => item.day === day);
+}`,
         tests:
           "equal(byDay([{day:1},{day:2},{day:1}],1).length,2); equal(byDay([],1).length,0);",
         hint: "data.filter(item => item.day === day)",
@@ -304,11 +445,15 @@ export const lessons: Lesson[] = [
         slot: 3,
         title: "Добавь выбор направления",
         prompt: "Добавь all только для направления, сохранив ограничение дня.",
-        starter: "function selectAll(data,day,track) {\n  return data;\n}",
+        starter: "function selectAll(data,day,track) {\n  return data; // Оставь нужный день. Проверь направление, если track отличается от 'all'.\n}",
         solution:
-          "function selectAll(data,day,track){return data.filter(item=>item.day===day&&(track==='all'||item.track===track));}",
+          `function selectAll(data, day, track) {
+  return data.filter((item) =>
+    item.day === day && (track === 'all' || item.track === track)
+  );
+}`,
         tests:
-          "const d=[{day:1,track:'AI'},{day:2,track:'AI'},{day:1,track:'Web'}];equal(selectAll(d,1,'all').length,2);equal(selectAll(d,2,'all').length,1);",
+          "const d=[{day:1,track:'AI'},{day:2,track:'AI'},{day:1,track:'Web'}];equal(selectAll(d,1,'all').length,2);equal(selectAll(d,2,'all').length,1);const ai=selectAll(d,1,'AI');equal(ai.length,1);equal(ai[0],d[0]);equal(selectAll(d,2,'Web').length,0);",
         hint: "Объедини правило направления в скобках.",
       },
     ],
@@ -319,13 +464,59 @@ export const lessons: Lesson[] = [
       "Пустое состояние видно только при отсутствии результатов.",
     ],
     starter:
-      "window.filterEvents = function(data, day, track) {\n  return [];\n};\n// Состояние, render и обработчики\n",
+      "window.filterEvents = function(data, day, track) {\n  return []; // Оставь выбранный день и выбранное направление. 'all' подходит любому направлению.\n};\n// Создай day, track и render. После смены фильтра перерисуй #events-list и обнови #program-empty.\n",
     solution:
-      "window.filterEvents = function(data, day, track) {\n  return data.filter(item => item.day === day && (track === 'all' || item.track === track));\n};\nconst list = document.querySelector('#events-list');\nif (list) {\n  let day = 1;\n  let track = 'all';\n  function render() {\n    list.replaceChildren();\n    const items = window.filterEvents(window.novaEvents, day, track);\n    document.querySelector('#program-empty').hidden = items.length > 0;\n    document.querySelectorAll('[data-day]').forEach(btn => {\n      btn.classList.toggle('active', Number(btn.dataset.day) === day);\n    });\n    items.forEach(item => {\n      const row = document.createElement('article');\n      row.className = 'event-row';\n      const time = document.createElement('span');\n      time.textContent = item.time;\n      const title = document.createElement('h2');\n      title.textContent = item.title;\n      const badge = document.createElement('span');\n      badge.textContent = item.track;\n      row.append(time, title, badge);\n      list.append(row);\n    });\n  }\n  document.querySelectorAll('[data-day]').forEach(btn => btn.addEventListener('click', () => { day = Number(btn.dataset.day); render(); }));\n  document.querySelector('#program-track').addEventListener('change', event => { track = event.target.value; render(); });\n  render();\n}",
+      `window.filterEvents = function(data, day, track) {
+  return data.filter((item) =>
+    item.day === day && (track === 'all' || item.track === track)
+  );
+};
+
+const list = document.querySelector('#events-list');
+if (list) {
+  const dayButtons = document.querySelectorAll('[data-day]');
+  const trackSelect = document.querySelector('#program-track');
+  const emptyMessage = document.querySelector('#program-empty');
+  let day = 1;
+  let track = 'all';
+
+  function render() {
+    list.replaceChildren();
+    const visible = window.filterEvents(window.novaEvents, day, track);
+    emptyMessage.hidden = visible.length !== 0;
+    dayButtons.forEach((button) => {
+      button.classList.toggle('active', Number(button.dataset.day) === day);
+    });
+    visible.forEach((item) => {
+      const row = document.createElement('article');
+      row.className = 'event-row';
+      const time = document.createElement('span');
+      time.textContent = item.time;
+      const title = document.createElement('h2');
+      title.textContent = item.title;
+      const badge = document.createElement('span');
+      badge.textContent = item.track;
+      row.append(time, title, badge);
+      list.append(row);
+    });
+  }
+
+  dayButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      day = Number(button.dataset.day);
+      render();
+    });
+  });
+  trackSelect.addEventListener('change', () => {
+    track = trackSelect.value;
+    render();
+  });
+  render();
+}`,
     hints: [
       "Раздели фильтрацию данных и обновление DOM.",
       "Храни day и track. При click/change меняй значение и вызывай render.",
-      "empty.hidden = items.length > 0; для теста выбери день 3 и Robotics — таких событий нет.",
+      "emptyMessage.hidden = visible.length !== 0. Для теста выбери день 3 и Robotics, там таких событий нет.",
     ],
     tests:
       "test('Фильтрация разных данных',()=>{equal(window.filterEvents([{day:1,track:'AI'},{day:2,track:'AI'},{day:1,track:'Web'}],1,'AI').length,1); equal(window.filterEvents([],1,'all').length,0);}); test('Начальный день',()=>equal(document.querySelectorAll('.event-row').length,3)); test('Смена дня',()=>{q('[data-day=\"2\"]').click(); equal(document.querySelectorAll('.event-row').length,2); ok(q('#events-list').textContent.includes('Интерфейсы'));}); test('Пустое состояние',()=>{q('[data-day=\"3\"]').click(); q('#program-track').value='Robotics'; q('#program-track').dispatchEvent(new Event('change')); equal(document.querySelectorAll('.event-row').length,0); ok(!q('#program-empty').hidden);}); test('Возврат результатов',()=>{q('#program-track').value='all'; q('#program-track').dispatchEvent(new Event('change')); equal(document.querySelectorAll('.event-row').length,2); ok(q('#program-empty').hidden);});",
@@ -346,9 +537,15 @@ export const lessons: Lesson[] = [
         title: "Проверь количество",
         prompt:
           "По строковому вводу верни допустимое количество 1–10 или null.",
-        starter: "function readCount(raw) {\n  return Number(raw);\n}",
+        starter: "function readCount(raw) {\n  return Number(raw); // Сохрани число. Если оно нецелое или вне диапазона 1–10, верни null.\n}",
         solution:
-          "function readCount(raw){const n=Number(raw);return Number.isInteger(n)&&n>=1&&n<=10?n:null;}",
+          `function readCount(raw) {
+  const count = Number(raw);
+  if (!Number.isInteger(count) || count < 1 || count > 10) {
+    return null;
+  }
+  return count;
+}`,
         tests:
           "equal(readCount('2'),2);equal(readCount('10'),10);equal(readCount(''),null);equal(readCount('1.5'),null);equal(readCount('-1'),null);",
         hint: "Преобразование нужно дополнить проверкой правил.",
@@ -359,9 +556,14 @@ export const lessons: Lesson[] = [
         prompt:
           "bindQuantity(input,callback) подписывается на input и передаёт callback число из текущего value.",
         starter:
-          "function bindQuantity(input,callback) {\n  // Подключи изменение поля\n}",
+          "function bindQuantity(input,callback) {\n  // В обработчике input преобразуй текущее input.value в число и вызови callback с ним.\n}",
         solution:
-          "function bindQuantity(input,callback){input.addEventListener('input',()=>callback(Number(input.value)));}",
+          `function bindQuantity(input, callback) {
+  input.addEventListener('input', () => {
+    const count = Number(input.value);
+    callback(count);
+  });
+}`,
         tests:
           "const input=document.createElement('input');let value=null;bindQuantity(input,n=>value=n);input.value='3';input.dispatchEvent(new Event('input'));equal(value,3);input.value='5';input.dispatchEvent(new Event('input'));equal(value,5);",
         hint: "Читай input.value внутри обработчика, а не только при регистрации.",
@@ -374,12 +576,49 @@ export const lessons: Lesson[] = [
       "Пустое, отрицательное, дробное и слишком большое количество отвергаются.",
     ],
     starter:
-      "window.calculateTotal = function(price, count) {\n  // Проверка и расчёт\n};\n// Подключи калькулятор к DOM\n",
+      "window.calculateTotal = function(price, count) {\n  // Проверь цену и количество. Верни null при ошибке, иначе верни произведение.\n};\n// Свяжи тариф и #quantity с updateTotal. Покажи в #ticket-total сумму или сообщение об ошибке.\n",
     solution:
-      "window.calculateTotal = function(price, count) {\n  if (!Number.isFinite(price) || price < 0 || !Number.isInteger(count) || count < 1 || count > 10) return null;\n  return price * count;\n};\nconst quantity = document.querySelector('#quantity');\nif (quantity) {\n  let price = 2500;\n  function update() {\n    const total = window.calculateTotal(price, Number(quantity.value));\n    document.querySelector('#ticket-total').textContent = total === null ? 'Введите от 1 до 10 билетов' : total + ' ₽';\n  }\n  document.querySelectorAll('[data-price]').forEach(btn => btn.addEventListener('click', () => {\n    price = Number(btn.dataset.price);\n    document.querySelectorAll('[data-price]').forEach(item => item.classList.toggle('active', item === btn));\n    update();\n  }));\n  quantity.addEventListener('input', update);\n  update();\n}",
+      `window.calculateTotal = function(price, count) {
+  if (!Number.isFinite(price) || price < 0) {
+    return null;
+  }
+  if (!Number.isInteger(count) || count < 1 || count > 10) {
+    return null;
+  }
+  return price * count;
+};
+
+const quantity = document.querySelector('#quantity');
+if (quantity) {
+  const output = document.querySelector('#ticket-total');
+  const tariffButtons = document.querySelectorAll('[data-price]');
+  let currentPrice = 2500;
+
+  function updateTotal() {
+    const count = Number(quantity.value);
+    const total = window.calculateTotal(currentPrice, count);
+    if (total === null) {
+      output.textContent = 'Введите от 1 до 10 билетов';
+    } else {
+      output.textContent = total + ' ₽';
+    }
+  }
+
+  tariffButtons.forEach((selected) => {
+    selected.addEventListener('click', () => {
+      currentPrice = Number(selected.dataset.price);
+      tariffButtons.forEach((button) => {
+        button.classList.toggle('active', button === selected);
+      });
+      updateTotal();
+    });
+  });
+  quantity.addEventListener('input', updateTotal);
+  updateTotal();
+}`,
     hints: [
       "Сначала проверь функцию на разных числах без DOM.",
-      "Храни price, а count получай при каждом update через Number(quantity.value).",
+      "Храни currentPrice, а count получай при каждом updateTotal через Number(quantity.value).",
       "Для неверных данных возвращай null. Сравни total === null и выведи точный текст ошибки.",
     ],
     tests:
@@ -401,9 +640,13 @@ export const lessons: Lesson[] = [
         title: "Найди первую ошибку",
         prompt:
           "Верни первую ошибку обязательных полей: «Имя», затем «Сообщение», иначе пустую строку.",
-        starter: "function required(name,message) {\n  return '';\n}",
+        starter: "function required(name,message) {\n  return ''; // Перед этой строкой проверь имя, затем сообщение через trim.\n}",
         solution:
-          "function required(name,message){if(!name.trim())return 'Имя';if(!message.trim())return 'Сообщение';return '';}",
+          `function required(name, message) {
+  if (!name.trim()) return 'Имя';
+  if (!message.trim()) return 'Сообщение';
+  return '';
+}`,
         tests:
           "equal(required(' ',' '),'Имя');equal(required('А',' '),'Сообщение');equal(required('А','Б'),'');",
         hint: "Порядок if определяет приоритет сообщений.",
@@ -414,9 +657,14 @@ export const lessons: Lesson[] = [
         prompt:
           "bindForm(form,callback) отменяет стандартный submit и вызывает callback ровно один раз на событие.",
         starter:
-          "function bindForm(form,callback) {\n  // Обработчик submit\n}",
+          "function bindForm(form,callback) {\n  // Подпиши форму на submit. Внутри вызови preventDefault(), затем callback().\n}",
         solution:
-          "function bindForm(form,callback){form.addEventListener('submit',event=>{event.preventDefault();callback();});}",
+          `function bindForm(form, callback) {
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    callback();
+  });
+}`,
         tests:
           "const form=document.createElement('form');let calls=0;bindForm(form,()=>calls++);const event=new Event('submit',{cancelable:true});form.dispatchEvent(event);ok(event.defaultPrevented);equal(calls,1);",
         hint: "В начале обработчика вызови event.preventDefault().",
@@ -429,13 +677,39 @@ export const lessons: Lesson[] = [
       "submit не перезагружает страницу и показывает результат.",
     ],
     starter:
-      "window.validateContact = function(name, email, message) {\n  // Верни первую ошибку или пустую строку\n};\n// Обработчик submit\n",
+      `${emailFormat}
+
+window.validateContact = function(name, email, message) {
+  // Проверь имя, email через hasEmailFormat и сообщение. Верни первую ошибку или ''.
+};
+// На submit отмени отправку, прочитай поля, вызови validateContact и обнови #form-status.
+`,
     solution:
-      "window.validateContact = function(name, email, message) {\n  if (!name.trim()) return 'Введите имя';\n  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email.trim())) return 'Введите корректный email';\n  if (!message.trim()) return 'Введите сообщение';\n  return '';\n};\nconst form = document.querySelector('#contact-form');\nif (form) form.addEventListener('submit', event => {\n  event.preventDefault();\n  const error = window.validateContact(form.elements.namedItem('name').value, form.elements.namedItem('email').value, form.elements.namedItem('message').value);\n  document.querySelector('#form-status').textContent = error || 'Данные проверены. Это учебная форма - сообщение не отправлено.';\n});",
+      `${emailFormat}
+
+window.validateContact = function(name, email, message) {
+  if (!name.trim()) return 'Введите имя';
+  if (!hasEmailFormat(email)) return 'Введите корректный email';
+  if (!message.trim()) return 'Введите сообщение';
+  return '';
+};
+
+const form = document.querySelector('#contact-form');
+if (form) {
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const name = form.querySelector('[name="name"]').value;
+    const email = form.querySelector('[name="email"]').value;
+    const message = form.querySelector('[name="message"]').value;
+    const error = window.validateContact(name, email, message);
+    const status = document.querySelector('#form-status');
+    status.textContent = error || 'Данные проверены. Это учебная форма - сообщение не отправлено.';
+  });
+}`,
     hints: [
-      "Проверь name.trim(), затем email, затем message.trim().",
+      "Проверь name.trim(), затем hasEmailFormat(email), затем message.trim().",
       "Регистрируй submit на form; первой строкой вызови event.preventDefault().",
-      "form.elements.namedItem('email').value; результат функции присвой textContent у #form-status.",
+      "Прочитай email через form.querySelector('[name=\"email\"]').value. Результат проверки покажи в #form-status.",
     ],
     tests:
       "test('Обязательное имя',()=>equal(window.validateContact(' ','a@b.ru','Текст'),'Введите имя')); test('Email',()=>{['','a','a@b','a b@c.ru'].forEach(email=>equal(window.validateContact('А',email,'Текст'),'Введите корректный email'));}); test('Обязательное сообщение',()=>equal(window.validateContact('А','a@b.ru','  '),'Введите сообщение')); test('Верные данные',()=>equal(window.validateContact(' Анна ',' a@b.ru ',' Привет '),'')); test('Submit отменён и показана ошибка',()=>{const e=new Event('submit',{cancelable:true,bubbles:true}); q('#contact-form').dispatchEvent(e); ok(e.defaultPrevented); equal(q('#form-status').textContent,'Введите имя');}); test('Успешная проверка формы',()=>{const f=q('#contact-form'); f.elements.namedItem('name').value='Анна'; f.elements.namedItem('email').value='a@b.ru'; f.elements.namedItem('message').value='Привет'; f.dispatchEvent(new Event('submit',{cancelable:true})); equalText(q('#form-status').textContent,'Данные проверены. Это учебная форма - сообщение не отправлено.');});",
@@ -457,9 +731,13 @@ export const lessons: Lesson[] = [
         prompt:
           "safeRename(node,text) меняет текст найденного узла и безопасно пропускает null.",
         starter:
-          "function safeRename(node,text) {\n  node.textContent=text;\n}",
+          "function safeRename(node,text) {\n  node.textContent = text; // Перенеси эту строку внутрь if (node), чтобы обработать null.\n}",
         solution:
-          "function safeRename(node,text){if(node)node.textContent=text;}",
+          `function safeRename(node, text) {
+  if (node) {
+    node.textContent = text;
+  }
+}`,
         tests:
           "safeRename(null,'NOVA');const node=document.createElement('h1');safeRename(node,'Готово');equal(node.textContent,'Готово');",
         hint: "Проверь существование узла до обращения к свойству.",
@@ -470,9 +748,14 @@ export const lessons: Lesson[] = [
         prompt:
           "Исправь переключение информации: toggleDetails(button,details) согласует hidden, aria-expanded и текст.",
         starter:
-          "function toggleDetails(button,details) {\n  details.hidden=false;\n}",
+          "function toggleDetails(button,details) {\n  details.hidden = false; // Переключи hidden и обнови подпись и aria-expanded из нового состояния.\n}",
         solution:
-          "function toggleDetails(button,details){details.hidden=!details.hidden;button.setAttribute('aria-expanded',String(!details.hidden));button.textContent=details.hidden?'Подробнее':'Скрыть';}",
+          `function toggleDetails(button, details) {
+  details.hidden = !details.hidden;
+  const isOpen = !details.hidden;
+  button.textContent = isOpen ? 'Скрыть' : 'Подробнее';
+  button.setAttribute('aria-expanded', String(isOpen));
+}`,
         tests:
           "const b=document.createElement('button'),d=document.createElement('div');d.hidden=true;toggleDetails(b,d);equal(d.hidden,false);equal(b.getAttribute('aria-expanded'),'true');equal(b.textContent,'Скрыть');toggleDetails(b,d);equal(d.hidden,true);equal(b.textContent,'Подробнее');",
         hint: "Вычисли новое состояние один раз и отрази его во всех признаках интерфейса.",
@@ -485,9 +768,18 @@ export const lessons: Lesson[] = [
       "Предыдущие функции проходят повторную проверку.",
     ],
     starter:
-      "const button = document.querySelector('#about-toggle');\nif (button) {\n  // Переключи hidden, aria-expanded и текст\n}",
+      "const button = document.querySelector('#about-toggle');\nif (button) {\n  // Найди #about-details. В обработчике click переключи hidden, затем обнови подпись и aria-expanded.\n}",
     solution:
-      "const button = document.querySelector('#about-toggle');\nif (button) {\n  const details = document.querySelector('#about-details');\n  button.addEventListener('click', () => {\n    details.hidden = !details.hidden;\n    button.setAttribute('aria-expanded', String(!details.hidden));\n    button.textContent = details.hidden ? 'Подробнее' : 'Скрыть';\n  });\n}",
+      `const button = document.querySelector('#about-toggle');
+if (button) {
+  const details = document.querySelector('#about-details');
+  button.addEventListener('click', () => {
+    details.hidden = !details.hidden;
+    const isOpen = !details.hidden;
+    button.textContent = isOpen ? 'Скрыть' : 'Подробнее';
+    button.setAttribute('aria-expanded', String(isOpen));
+  });
+}`,
     hints: [
       "hidden — boolean-свойство DOM-элемента.",
       "Переключи details.hidden = !details.hidden.",

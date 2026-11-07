@@ -26,10 +26,11 @@ import {
   X,
 } from "lucide-react";
 import { lessons } from "../content/course";
-import { sessions } from "../content/sessions";
+import { taskSteps } from "../content/taskSteps";
 import type { NovaPage, TestResult } from "../content/types";
 import { useProgress } from "../engine/persistence";
 import { checkInSandbox, type ScriptLocation } from "../engine/execution";
+import { useAutoCheck } from "../engine/useAutoCheck";
 import { pages, projectFiles, referenceCodes } from "../projects/nova";
 import { CodeEditor, languageFor } from "../components/CodeEditor";
 import { SyntaxCode } from "../components/SyntaxCode";
@@ -119,7 +120,10 @@ export function Workspace({ free = false }: { free?: boolean }) {
     page,
     key: 0,
   }));
+  const autoCheck = useAutoCheck(check);
   useEffect(() => {
+    autoCheck.cancel();
+    setBusy(false);
     if (!free && lesson) {
       update((p) => ({ ...p, current: lesson.id }));
       setFile(stage);
@@ -151,9 +155,17 @@ export function Workspace({ free = false }: { free?: boolean }) {
     if (free) {
       update((p) => ({ ...p, files: { ...p.files, [file]: code } }));
     } else if (file === stage) {
-      update((p) => ({ ...p, drafts: { ...p.drafts, [lesson.id]: code } }));
+      saveDraft(code);
+      return;
     }
     setVerified("");
+  }
+  function saveDraft(code: string) {
+    update((p) => ({ ...p, drafts: { ...p.drafts, [lesson.id]: code } }));
+    setVerified("");
+    setResults([]);
+    setNotice("Проверим после паузы в наборе…");
+    autoCheck.schedule();
   }
   function execute() {
     setEditorJump(null);
@@ -182,32 +194,52 @@ export function Workspace({ free = false }: { free?: boolean }) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   });
-  async function check() {
+  async function check(manual: boolean, signal: AbortSignal) {
     if (busy) return;
-    setBusy(true);
-    setNotice("Проверяем работу сайта…");
-    setErrors([]);
+    if (manual) {
+      setBusy(true);
+      setErrors([]);
+    }
+    setNotice(manual ? "Проверяем работу сайта…" : "Автопроверка…");
     const snapshot = signature;
     const checks: TestResult[] = free
       ? []
-      : await checkInSandbox(lesson.page, codeSet, fileSet, lesson.tests, {
-          file: stage,
-          code: currentCode,
-        });
+      : await checkInSandbox(
+          lesson.page,
+          codeSet,
+          fileSet,
+          lesson.tests,
+          { file: stage, code: currentCode },
+          signal,
+        );
     if (free) {
       for (const l of stagesInWorkspace) {
-        const r = await checkInSandbox(l.page, codeSet, fileSet, l.tests);
+        const r = await checkInSandbox(
+          l.page, codeSet, fileSet, l.tests, undefined, signal,
+        );
+        if (signal.aborted) return;
         checks.push(...r.map((x) => ({ ...x, name: `${l.id}. ${x.name}` })));
       }
     }
+    if (signal.aborted) return;
     setResults(checks);
-    setConsoleTab("tests");
-    setShowConsole(true);
-    setShowPreview(true);
+    if (manual) {
+      setConsoleTab("tests");
+      setShowConsole(true);
+      setShowPreview(true);
+    }
     const passed = checks.length > 0 && checks.every((r) => r.passed);
     setVerified(passed ? snapshot : "");
     if (!free)
       update((p) => ({ ...p, results: { ...p.results, [lesson.id]: checks } }));
+    if (!manual) {
+      const passedCount = checks.filter((result) => result.passed).length;
+      setNotice(passed
+        ? "Автопроверка · Всё верно. Можно добавить этап в проект."
+        : `Автопроверка · ${passedCount} из ${checks.length}. Подробности во вкладке «Проверка».`,
+      );
+      return;
+    }
     setNotice(
       passed
         ? free
@@ -277,6 +309,8 @@ export function Workspace({ free = false }: { free?: boolean }) {
       )
     )
       return;
+    autoCheck.cancel();
+    setNotice("");
     setVerified("");
     setResults([]);
     if (free)
@@ -401,20 +435,22 @@ export function Workspace({ free = false }: { free?: boolean }) {
                     : "В редакторе уже есть код предыдущих этапов из твоего проекта."}
                 </p>
               )}
+              <h3>Шаги задания</h3>
+              <ol>
+                {taskSteps[lesson.id].practice.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              <p className="starter-note">
+                После паузы в наборе код проверится автоматически. Кнопка
+                «Проверить решение» запускает проверку сразу.
+              </p>
               <h3>Что должно работать</h3>
               <ol>
                 {lesson.requirements.map((requirement) => (
                   <li key={requirement}>{requirement}</li>
                 ))}
               </ol>
-              <details className="task-disclosure" key={`plan-${lesson.id}`}>
-                <summary>План работы</summary>
-                <ol>
-                  {sessions[lesson.id].practice.map((milestone) => (
-                    <li key={milestone}>{milestone}</li>
-                  ))}
-                </ol>
-              </details>
               <div className="task-hints">
                 <button
                   onClick={() =>
@@ -447,12 +483,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
                 <button
                   disabled={busy}
                   onClick={() => {
-                    update((p) => ({
-                      ...p,
-                      drafts: { ...p.drafts, [lesson.id]: lesson.solution },
-                    }));
-                    setVerified("");
-                    setResults([]);
+                    saveDraft(lesson.solution);
                     open(stage);
                     taskDialog.current?.close();
                   }}
@@ -772,7 +803,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
             <button onClick={execute} disabled={busy}>
               <Play size={15} /> Запустить
             </button>
-            <button className="primary" disabled={busy} onClick={check}>
+            <button className="primary" disabled={busy} onClick={autoCheck.checkNow}>
               <CheckCheck size={17} />
               {busy
                 ? "Проверяем…"

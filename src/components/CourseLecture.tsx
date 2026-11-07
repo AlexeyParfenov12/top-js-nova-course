@@ -2,6 +2,7 @@ import { BookOpen } from "lucide-react";
 import { Fragment, type ReactNode } from "react";
 import type { Lecture } from "../content/lectures";
 import type { Lesson } from "../content/types";
+import { assignmentPrimer } from "../content/assignmentPrimer";
 import {
   assignmentWalkthroughs,
   type LineNote,
@@ -99,10 +100,18 @@ export function CourseLecture({
             Разбор заданий
           </Chapter>
           <p>
-            Здесь разобраны те же заготовки, которые откроются во вкладках
-            «Тренажёр» и «Практика NOVA». Сначала посмотрите, что предстоит
-            дописать и какой результат нужно получить.
+            Здесь те же заготовки и эталоны, что в «Тренажёре» и «Практике
+            NOVA». Сначала разберите приёмы и заготовку. Готовый код можно
+            открыть для сверки.
           </p>
+          <div className="concept-notes">
+            <h3>Что понадобится в заданиях</h3>
+            <ol>
+              {assignmentPrimer[lesson.id].map((step) => (
+                <li key={step}><InlineCode text={step} /></li>
+              ))}
+            </ol>
+          </div>
           <h3>Две задачи тренажёра</h3>
           <div className="lecture-assignment-list">
             {lesson.exercises.map((exercise, index) => (
@@ -120,6 +129,10 @@ export function CourseLecture({
                   notes={walkthrough.trainer[index]}
                   initiallyOpen={index === 0}
                 />
+                <SolutionPreview
+                  code={exercise.solution}
+                  label={`Эталон задачи ${index + 1}`}
+                />
               </div>
             ))}
           </div>
@@ -133,6 +146,7 @@ export function CourseLecture({
             }}
           />
           <AssignmentLineNotes notes={walkthrough.practice} />
+          <SolutionPreview code={lesson.solution} label="Эталон практики NOVA" />
         </section>
         <section>
           <Chapter number={6} id="lecture-end" time="27–30">
@@ -152,21 +166,34 @@ export function CourseLecture({
   );
 }
 
+function InlineCode({ text }: { text: string }) {
+  return text.split("`").map((part, index) =>
+    index % 2 ? (
+      <code key={index}>{part}</code>
+    ) : (
+      <Fragment key={index}>{part}</Fragment>
+    ),
+  );
+}
+
+function SolutionPreview({ code, label }: { code: string; label: string }) {
+  return (
+    <details className="lecture-solution">
+      <summary>{label}</summary>
+      <pre aria-label={label}>
+        <SyntaxCode code={code} />
+      </pre>
+    </details>
+  );
+}
+
 function ConceptNotes({ guide }: { guide: ConceptGuide }) {
   return (
     <div className="concept-notes">
       <h3>Разбор кода</h3>
       <ol>
         {guide.steps.map((step) => (
-          <li key={step}>
-            {step.split("`").map((part, index) =>
-              index % 2 ? (
-                <code key={index}>{part}</code>
-              ) : (
-                <Fragment key={index}>{part}</Fragment>
-              ),
-            )}
-          </li>
+          <li key={step}><InlineCode text={step} /></li>
         ))}
       </ol>
       <details className="concept-question">

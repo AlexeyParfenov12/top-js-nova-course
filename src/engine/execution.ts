@@ -157,9 +157,11 @@ export function checkInSandbox(
   files: Record<string, string>,
   tests: string,
   rawStage?: RawStage,
+  signal?: AbortSignal,
 ): Promise<TestResult[]> {
-  const run = () =>
-    new Promise<TestResult[]>((resolve) => {
+  const run = () => {
+    if (signal?.aborted) return Promise.resolve([]);
+    return new Promise<TestResult[]>((resolve) => {
       const token = crypto.randomUUID();
       const frame = document.createElement("iframe");
       frame.setAttribute("sandbox", "allow-scripts");
@@ -169,10 +171,12 @@ export function checkInSandbox(
       const errors: string[] = [];
       const finish = (result: TestResult[]) => {
         clearTimeout(timer);
+        signal?.removeEventListener("abort", abort);
         window.removeEventListener("message", receive);
         frame.remove();
         resolve(result);
       };
+      const abort = () => finish([]);
       const receive = (e: MessageEvent) => {
         if (!validMessage(e, frame.contentWindow, token)) return;
         if (e.data.type === "error" && typeof e.data.payload === "string")
@@ -200,6 +204,7 @@ export function checkInSandbox(
         4000,
       );
       window.addEventListener("message", receive);
+      signal?.addEventListener("abort", abort, { once: true });
       try {
         frame.srcdoc = buildPreview(page, codes, files, token, tests);
         document.body.append(frame);
@@ -213,6 +218,7 @@ export function checkInSandbox(
         ]);
       }
     });
+  };
   const result = queue.then(run, run);
   queue = result.catch(() => {});
   return result;

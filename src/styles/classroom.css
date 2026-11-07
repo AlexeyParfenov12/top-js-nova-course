@@ -245,6 +245,20 @@
   margin: 7px 0 13px;
 }
 
+.trainer-steps {
+  margin: 0 0 14px;
+  padding: 11px 12px 11px 32px;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  background: #fbf9fd;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.trainer-steps li + li {
+  margin-top: 4px;
+}
+
 .classroom-trainer .mini-editor-caption {
   display: flex;
   justify-content: space-between;
@@ -751,7 +765,8 @@
   font-size: 13px;
 }
 
-.assignment-line-notes {
+.assignment-line-notes,
+.lecture-solution {
   margin-top: 10px;
   padding: 8px 10px;
   border: 1px solid #e9e0f2;
@@ -759,10 +774,16 @@
   background: #faf7fd;
 }
 
-.assignment-line-notes summary {
+.assignment-line-notes summary,
+.lecture-solution summary {
   color: #56358a;
   font-size: 13px;
   font-weight: 700;
+}
+
+.lecture-body .lecture-solution pre {
+  margin: 8px 0 0;
+  padding-inline: 5px 10px;
 }
 
 .lecture-body .assignment-line-notes ol {

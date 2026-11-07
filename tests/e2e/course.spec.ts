@@ -4,6 +4,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { emptyProgress } from "../../src/engine/persistence";
+import { lessons } from "../../src/content/course";
 test("Простой маршрут от лекции через две задачи к практике", async ({
   page,
 }) => {
@@ -54,9 +55,16 @@ test("Простой маршрут от лекции через две зада
   await expect(notes.first().locator("ol > li")).toHaveCount(3);
   const practiceNotes = notes.last();
   await practiceNotes.getByText("Построчный разбор", { exact: true }).click();
-  await expect(practiceNotes.locator('ol > li[value="5"]')).toContainText(
-    "Найдите #hello",
+  await expect(practiceNotes.locator('ol > li[value="8"]')).toContainText(
+    "button.addEventListener",
   );
+  await expect(
+    page.getByRole("heading", { name: "Что понадобится в заданиях" }),
+  ).toBeVisible();
+  const lectureSolution = page.locator('pre[aria-label="Эталон практики NOVA"]');
+  await page.locator(".lecture-solution").last().locator("summary").click();
+  await expect(lectureSolution).toContainText("if (title)");
+  const solutionCode = await lectureSolution.textContent();
   const navigator = page.getByRole("dialog", { name: "Навигатор курса" });
   await page.getByRole("button", { name: "Навигатор", exact: true }).click();
   await expect(navigator.getByText(/2 пары сегодня и 8 пар/)).toBeVisible();
@@ -105,6 +113,11 @@ test("Простой маршрут от лекции через две зада
   await expect(
     page.getByRole("button", { name: "Условие задания" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Условие задания" }).click();
+  const task = page.getByRole("dialog", { name: "Первые строки JavaScript" });
+  await task.getByText("Показать эталонное решение", { exact: true }).click();
+  expect(await task.locator("pre").textContent()).toBe(solutionCode);
+  await task.getByRole("button", { name: "К редактору" }).click();
   await page.getByRole("button", { name: "Навигатор", exact: true }).click();
   await expect(navigator).toBeVisible();
   await page.keyboard.press("Escape");
@@ -682,6 +695,37 @@ test("В первой паре образец открывает меню и г�
   await expect(sample.locator("#ticket-total")).toHaveText("2500 ₽");
   await sample.locator("#quantity").fill("2");
   await expect(sample.locator("#ticket-total")).toHaveText("5000 ₽");
+});
+
+test("Автопроверка показывает результат после ввода и сохраняет ручную проверку", async ({
+  page,
+}) => {
+  await page.goto("#/lesson/1");
+  await page.getByRole("button", { name: /Тренажёр.*25 мин/ }).click();
+  const trainer = page.getByRole("textbox", { name: "Код упражнения 1" });
+  await trainer.press("ControlOrMeta+Home");
+  await trainer.press("ControlOrMeta+Shift+End");
+  await page.keyboard.insertText(lessons[0].exercises[0].solution.replace(/\n\s*/g, " "));
+  await expect(page.getByText("Верно! Все сценарии пройдены.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Проверить", exact: true })).toBeEnabled();
+
+  await page.goto("#/workspace/1");
+  const editor = page.getByRole("textbox", {
+    name: "Редактор кода lesson-1/scripts/stage-1.js",
+  });
+  await editor.press("ControlOrMeta+Home");
+  await editor.press("ControlOrMeta+Shift+End");
+  await page.keyboard.insertText(lessons[0].solution.replace(/\n\s*/g, " "));
+  await expect(page.getByText(/Автопроверка · Всё верно/)).toBeVisible();
+  const apply = page.getByRole("button", { name: "Добавить в мой проект" });
+  await expect(apply).toBeEnabled();
+
+  await editor.press("ControlOrMeta+A");
+  await page.keyboard.insertText("const broken = ;");
+  await expect(apply).not.toBeVisible();
+  await expect(page.getByText(/Автопроверка · 0 из 1/)).toBeVisible();
+  await page.getByRole("button", { name: "Проверить решение", exact: true }).click();
+  await expect(page.locator(".test-result.failed")).toContainText("Синтаксис");
 });
 
 test("Два ученика сохраняют разные черновики независимо", async ({
