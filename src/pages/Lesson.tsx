@@ -3,18 +3,18 @@ import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   Check,
   Clock3,
-  Code2,
   Presentation,
 } from "lucide-react";
 import { lessons } from "../content/course";
+import { lectures, type Lecture } from "../content/lectures";
 import { pair, pairMinutes, sessions } from "../content/sessions";
 import type { Lesson } from "../content/types";
 import { useProgress } from "../engine/persistence";
 import { PracticeExercise } from "../components/PracticeExercise";
 import { CourseNavigator } from "../components/CourseNavigator";
+import { CourseLecture } from "../components/CourseLecture";
 import "../styles/classroom.css";
 
 export function LessonPage() {
@@ -44,6 +44,7 @@ function Classroom({ lesson }: { lesson: Lesson }) {
   const [exerciseIndex, setExerciseIndex] = useState(0);
   const phaseNav = useRef<HTMLElement>(null);
   const session = sessions[lesson.id];
+  const lecture = lectures[lesson.id];
   const workspace = `/workspace/${lesson.id}`;
   const exercise = lesson.exercises[exerciseIndex];
   const pairOfDay = ((lesson.id - 1) % 3) + 1;
@@ -105,42 +106,12 @@ function Classroom({ lesson }: { lesson: Lesson }) {
 
       {phase === "lecture" ? (
         <>
-          <PairPlan session={session} feature={lesson.feature} />
-          <section
-            className="classroom-card classroom-lecture"
-            aria-label="Лекция"
-          >
-            <div className="classroom-notes">
-              <h2>
-                <BookOpen size={19} /> Главное за пару
-              </h2>
-              <ol>
-                {session.topics.map(([title, description]) => (
-                  <li key={title}>
-                    <h3>{title}</h3>
-                    <p>{description}</p>
-                  </li>
-                ))}
-              </ol>
-            </div>
-            <div className="classroom-example">
-              <h2>
-                <Code2 size={19} /> Пример для разбора
-              </h2>
-              <pre>
-                <code>{session.example}</code>
-              </pre>
-              <div className="example-explanation">
-                <h3>Как это работает</h3>
-                <ol>
-                  {session.explanation.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ol>
-                <p>{session.result}</p>
-              </div>
-            </div>
-          </section>
+          <PairPlan
+            session={session}
+            lecture={lecture}
+            feature={lesson.feature}
+          />
+          <CourseLecture lecture={lecture} />
         </>
       ) : (
         <section
@@ -200,9 +171,11 @@ function Classroom({ lesson }: { lesson: Lesson }) {
 
 function PairPlan({
   session,
+  lecture,
   feature,
 }: {
   session: (typeof sessions)[number];
+  lecture: Lecture;
   feature: string;
 }) {
   const plan = [
@@ -214,9 +187,18 @@ function PairPlan({
     [
       "5–17",
       "Объяснение",
-      `Разберите три идеи из конспекта вместе, по 4 минуты на каждую. ${session.discuss}`,
+      "Пройдите разделы 2–4 по порядку. На каждый раздел отведите 4 минуты: сначала обсудите понятие, затем прочитайте пример кода.",
     ],
-    ["17–30", "Живой пример", session.demo],
+    [
+      "17–27",
+      "Живой пример",
+      lecture.live.title + ". Наберите код и проверьте результат вместе.",
+    ],
+    [
+      "27–30",
+      "Ошибки и итог",
+      "Разберите две типичные ошибки и проговорите переход к тренажёру.",
+    ],
     [
       "30–55",
       "Тренажёр",

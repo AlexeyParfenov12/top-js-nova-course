@@ -1,0 +1,38 @@
+<section class="page-intro">
+  <div>
+    <div class="label">ВЫБИРАЙ СВОЙ РИТМ</div>
+    <h1>Программа</h1>
+    <p>
+      Открывай новые темы, встречай людей и оставляй время на неожиданные открытия. Собери
+      свой маршрут по фестивалю.
+    </p>
+  </div>
+  <span class="page-number">NOVA / 03</span>
+</section>
+<div class="filters">
+  <button class="day-tab active" data-day="1">
+    День 1
+    <small>12 апреля / NOVA</small>
+  </button>
+  <button class="day-tab" data-day="2">
+    День 2
+    <small>13 апреля / NOVA</small>
+  </button>
+  <button class="day-tab" data-day="3">
+    День 3
+    <small>14 апреля / NOVA</small>
+  </button>
+  <label class="filter-label" for="program-track">Направление</label>
+  <select id="program-track">
+    <option value="all">Все направления</option>
+    <option>AI</option>
+    <option>Web</option>
+    <option>GameDev</option>
+    <option>Robotics</option>
+  </select>
+</div>
+<div id="events-list"></div>
+<p id="program-empty" class="callout" hidden>
+  В этот день событий по направлению нет. Попробуйте другой фильтр.
+</p>
+<p class="subtle">Время местное. Программа демонстрационного фестиваля.</p>

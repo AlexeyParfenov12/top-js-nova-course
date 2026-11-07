@@ -19,11 +19,18 @@ test("Простой маршрут от лекции через две зада
     phases.getByRole("link", { name: /Практика NOVA.*35 мин/ }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Пример для разбора" }),
+    page.getByRole("heading", { name: "Пишем вместе" }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Как это работает" }),
   ).toBeVisible();
+  const contents = page.getByRole("navigation", { name: "Содержание лекции" });
+  await expect(contents.getByRole("button")).toHaveCount(6);
+  await contents.getByRole("button", { name: /Пишем вместе/ }).click();
+  await expect(
+    page.getByRole("heading", { name: /Пишем вместе/ }),
+  ).toBeFocused();
+  await expect(page).toHaveURL(/#\/lesson\/1$/);
   const navigator = page.getByRole("dialog", { name: "Навигатор курса" });
   await page.getByRole("button", { name: "Навигатор", exact: true }).click();
   await expect(navigator.getByText(/2 пары сегодня и 8 пар/)).toBeVisible();
@@ -414,7 +421,7 @@ test("Лекция, тренажёр, перенос JSON и отказ от п�
 }) => {
   await page.goto("#/lesson/1");
   await expect(
-    page.getByRole("heading", { name: "Пример для разбора" }),
+    page.getByRole("heading", { name: "Пишем вместе" }),
   ).toBeVisible();
   await page
     .locator(".lesson-tabs")

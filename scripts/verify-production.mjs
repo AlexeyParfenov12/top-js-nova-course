@@ -28,6 +28,9 @@ try {
   const phases = page.getByRole("navigation", { name: "Части пары" });
   await phases.getByRole("button", { name: /Лекция.*30 мин/ }).waitFor();
   assert.equal(await phases.locator("button, a").count(), 3);
+  const outline = page.getByRole("navigation", { name: "Содержание лекции" });
+  await outline.getByRole("button", { name: /Пишем вместе/ }).waitFor();
+  assert.equal(await outline.getByRole("button").count(), 6);
   if (process.argv[5])
     await page.screenshot({ path: process.argv[5], fullPage: false });
   await page.getByRole("heading", { name: "Как это работает" }).waitFor();
@@ -55,6 +58,16 @@ try {
   await page.locator(".monaco-editor").first().waitFor({ timeout: 30000 });
   await page.reload();
   await page.locator(".monaco-editor").first().waitFor({ timeout: 30000 });
+  await page.getByRole("button", { name: "index.html", exact: true }).click();
+  await page
+    .getByRole("textbox", { name: "Редактор кода lesson-1/index.html" })
+    .waitFor();
+  await page
+    .locator(".monaco-editor .line-numbers")
+    .filter({ hasText: /^7$/ })
+    .waitFor();
+  if (process.argv[10])
+    await page.screenshot({ path: process.argv[10], fullPage: false });
   await page.getByRole("button", { name: "Условие задания" }).click();
   await page.getByRole("dialog").waitFor();
   await page.getByText("Показать эталонное решение", { exact: true }).click();
@@ -144,6 +157,8 @@ try {
       learningUI: true,
       classroomFlow: true,
       courseNavigator: true,
+      lectureOutline: true,
+      formattedHtml: true,
       routeReload: true,
       monaco: true,
       grading: true,

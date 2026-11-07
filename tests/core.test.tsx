@@ -5,6 +5,7 @@ import { emptyProgress, validateProgress } from "../src/engine/persistence";
 import { instrument } from "../src/engine/instrument";
 import { validMessage, isResults } from "../src/engine/execution";
 import { lessons } from "../src/content/course";
+import { lectures } from "../src/content/lectures";
 import { projectFiles, referenceCodes } from "../src/projects/nova";
 import { pairMinutes, sessions } from "../src/content/sessions";
 describe("Курс и экспортируемый проект", () => {
@@ -15,7 +16,8 @@ describe("Курс и экспортируемый проект", () => {
       expect(lessons.filter((lesson) => lesson.day === day)).toHaveLength(3);
     }
     for (const lesson of lessons) {
-      expect(sessions[lesson.id].topics).toHaveLength(3);
+      expect(lectures[lesson.id].concepts).toHaveLength(3);
+      expect(() => instrument(lectures[lesson.id].live.code)).not.toThrow();
       expect(sessions[lesson.id].practice).toHaveLength(3);
       expect(lesson.exercises).toHaveLength(2);
       expect(
@@ -34,6 +36,10 @@ describe("Курс и экспортируемый проект", () => {
     );
     for (const html of Object.keys(files).filter((p) => p.endsWith(".html"))) {
       expect(files[html].length).toBeLessThan(100_000);
+      for (const tag of ["header", "main", "footer"])
+        expect(files[html], html).toMatch(
+          new RegExp(`\\n {4}<${tag}\\b[^>]*>\\n`),
+        );
       const doc = new DOMParser().parseFromString(files[html], "text/html");
       expect(doc.querySelector("h1")).toBeTruthy();
       for (const node of doc.querySelectorAll(
