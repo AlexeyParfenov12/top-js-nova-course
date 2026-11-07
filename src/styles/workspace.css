@@ -240,17 +240,27 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 5px;
-  padding: 0 8px;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 10px;
   color: var(--work-accent);
-  border-left: 1px solid var(--work-line);
+  border: 1px solid var(--work-line);
+  border-radius: 7px;
+  background: white;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .split-control input {
-  width: 65px;
+  width: 100px;
   accent-color: var(--work-accent);
 }
 
+.split-control output {
+  width: 3ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 .file-tree {
   flex: 0 0 clamp(104px, 12vw, 158px);
   padding: 6px 0;

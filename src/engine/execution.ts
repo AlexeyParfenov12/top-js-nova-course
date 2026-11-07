@@ -1,11 +1,57 @@
 import type { NovaPage, TestResult } from "../content/types";
-import { pages, projectFiles } from "../projects/nova";
+import { pages, projectFiles, stageCodeLineOffset } from "../projects/nova";
 import { guardScript, instrument } from "./instrument";
 export interface ExecutionMessage {
   channel: "top-nova";
   token: string;
   type: "result" | "log" | "error" | "navigate" | "ready";
   payload: unknown;
+}
+
+class ScriptBuildError extends Error {
+  readonly location?: { line: number; column: number };
+
+  readonly detail: string;
+
+  constructor(readonly file: string, cause: unknown) {
+    const message = cause instanceof Error ? cause.message : String(cause);
+    super(`${file}: ${message}`);
+    this.detail = message.replace(/\s*\(\d+:\d+\)$/, "");
+    if (cause instanceof SyntaxError && "loc" in cause) {
+      const loc = cause.loc as { line: number; column: number };
+      this.location = { line: loc.line, column: loc.column + 1 };
+    }
+  }
+}
+
+export type ScriptLocation = { file: string; line: number; column: number };
+export type RawStage = { file: string; code: string };
+
+export function describeBuildError(error: unknown, rawStage?: RawStage) {
+  const location = error instanceof ScriptBuildError ? error.location : undefined;
+  if (!(error instanceof ScriptBuildError) || !location) {
+    return {
+      message: error instanceof Error ? error.message : String(error),
+      source: null,
+    };
+  }
+  const source: ScriptLocation = { file: error.file, ...location };
+  if (source.file === rawStage?.file) {
+    const lines = rawStage.code.split(/\r\n?|\n/);
+    source.line = Math.max(1, source.line - stageCodeLineOffset);
+    if (source.line > lines.length) {
+      source.line = lines.length;
+      source.column = lines[lines.length - 1].length + 1;
+    }
+  }
+  const detail =
+    error.detail === "Unexpected token"
+      ? "Проверьте, хватает ли скобок и завершено ли выражение."
+      : error.detail;
+  return {
+    message: `${source.file}, строка ${source.line}: ${detail}`,
+    source,
+  };
 }
 export function validMessage(
   event: MessageEvent,
@@ -61,19 +107,17 @@ export function buildPreview(
  document.addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;const href=a.getAttribute('href')||'';if(href.endsWith('.html')){e.preventDefault();send('navigate',href.slice(0,-5));}else if(!href.startsWith('#')) e.preventDefault();});
  send('ready',null);})();`;
   let scripts = script(guardScript) + script(bridge);
-  const data = files["data.js"];
-  scripts += script(instrument(data));
-  Object.entries(files)
-    .filter(([name]) => /^scripts\/stage-\d+\.js$/.test(name))
-    .forEach(([name, code]) => {
-      try {
-        scripts += script(instrument(code));
-      } catch (e) {
-        throw new Error(
-          `${name}: ${e instanceof Error ? e.message : String(e)}`,
-        );
-      }
-    });
+  const scriptNames = [
+    "data.js",
+    ...Object.keys(files).filter((name) => /^scripts\/stage-\d+\.js$/.test(name)),
+  ];
+  for (const name of scriptNames) {
+    try {
+      scripts += script(instrument(files[name]));
+    } catch (error) {
+      throw new ScriptBuildError(name, error);
+    }
+  }
   if (tests) {
     scripts += script(`setTimeout(()=>{ __topDeadline=performance.now()+1000;
  const results=[];const q=s=>{const n=document.querySelector(s);if(!n)throw new Error('Не найден элемент '+s);return n;};
@@ -108,6 +152,7 @@ export function checkInSandbox(
   codes: Record<string, string>,
   files: Record<string, string>,
   tests: string,
+  rawStage?: RawStage,
 ): Promise<TestResult[]> {
   const run = () =>
     new Promise<TestResult[]>((resolve) => {
@@ -159,7 +204,7 @@ export function checkInSandbox(
           {
             name: "Синтаксис",
             passed: false,
-            detail: e instanceof Error ? e.message : String(e),
+            detail: describeBuildError(e, rawStage).message,
           },
         ]);
       }

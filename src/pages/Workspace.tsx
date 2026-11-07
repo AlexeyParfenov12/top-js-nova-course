@@ -29,7 +29,7 @@ import { lessons } from "../content/course";
 import { sessions } from "../content/sessions";
 import type { NovaPage, TestResult } from "../content/types";
 import { useProgress } from "../engine/persistence";
-import { checkInSandbox } from "../engine/execution";
+import { checkInSandbox, type ScriptLocation } from "../engine/execution";
 import { pages, projectFiles, referenceCodes } from "../projects/nova";
 import { CodeEditor, languageFor } from "../components/CodeEditor";
 import { SyntaxCode } from "../components/SyntaxCode";
@@ -41,12 +41,16 @@ function starterTabs(stage: string, page: NovaPage) {
   return [stage, `${page}.html`, "styles.css"];
 }
 
+const baseProjectFiles = projectFiles({}, {});
+const markupFiles = [...pages.map(({ id }) => `${id}.html`), "styles.css"];
+
 export function Workspace({ free = false }: { free?: boolean }) {
   const { id } = useParams();
   const lesson = lessons[(Number(id) || 1) - 1];
   const { progress, update, status } = useProgress();
   const stage = `scripts/stage-${lesson?.id || 1}.js`;
   const [file, setFile] = useState(stage);
+  const [editorJump, setEditorJump] = useState<ScriptLocation | null>(null);
   const [openFiles, setOpenFiles] = useState(() =>
     starterTabs(stage, lesson?.page || "index"),
   );
@@ -69,8 +73,15 @@ export function Workspace({ free = false }: { free?: boolean }) {
   const savedCode = progress.applied.includes(lessonId)
     ? progress.codes[lessonId]
     : undefined;
+  const draft = progress.drafts[lessonId];
+  const copiedMarkup =
+    !free &&
+    draft &&
+    markupFiles.find(
+      (name) => draft === progress.files[name] || draft === baseProjectFiles[name],
+    );
   const currentCode =
-    progress.drafts[lessonId] ?? savedCode ?? lesson?.starter ?? "";
+    (copiedMarkup ? undefined : draft) ?? savedCode ?? lesson?.starter ?? "";
   const starterCodes = useMemo(() => {
     if (free) return {};
     return Object.fromEntries(
@@ -123,6 +134,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
     if (!free && lesson) {
       update((p) => ({ ...p, current: lesson.id }));
       setFile(stage);
+      setEditorJump(null);
       setOpenFiles(starterTabs(stage, lesson.page));
       setPage(lesson.page);
       setHint(0);
@@ -141,6 +153,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
   }, [lesson?.id, free]);
   function open(name: string) {
     setFile(name);
+    setEditorJump(null);
     setOpenFiles((prev) => (prev.includes(name) ? prev : [...prev, name]));
   }
   const readOnly = !free && file !== stage;
@@ -154,6 +167,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
     setVerified("");
   }
   function execute() {
+    setEditorJump(null);
     setErrors([]);
     setLogs([]);
     setRun({ codes: codeSet, files: fileSet, page, key: Date.now() });
@@ -187,7 +201,10 @@ export function Workspace({ free = false }: { free?: boolean }) {
     const snapshot = signature;
     const checks: TestResult[] = free
       ? []
-      : await checkInSandbox(lesson.page, codeSet, fileSet, lesson.tests);
+      : await checkInSandbox(lesson.page, codeSet, fileSet, lesson.tests, {
+          file: stage,
+          code: currentCode,
+        });
     if (free) {
       for (const l of stagesInWorkspace) {
         const r = await checkInSandbox(l.page, codeSet, fileSet, l.tests);
@@ -219,7 +236,10 @@ export function Workspace({ free = false }: { free?: boolean }) {
     setBusy(true);
     const checks: TestResult[] = [];
     for (const l of stagesInWorkspace) {
-      const r = await checkInSandbox(l.page, codeSet, fileSet, l.tests);
+      const r = await checkInSandbox(l.page, codeSet, fileSet, l.tests, {
+        file: stage,
+        code: currentCode,
+      });
       checks.push(...r.map((x) => ({ ...x, name: `Этап ${l.id}: ${x.name}` })));
     }
     setResults(checks);
@@ -335,6 +355,22 @@ export function Workspace({ free = false }: { free?: boolean }) {
           >
             <PanelsTopLeft size={16} /> <span>Сравнение и вывод</span>
           </button>
+          {showRightPane && (
+            <label className="split-control">
+              <ArrowLeftRight size={15} aria-hidden="true" />
+              <span>Ширина редактора</span>
+              <input
+                aria-label="Ширина редактора"
+                aria-valuetext={`${ratio}%`}
+                type="range"
+                min="35"
+                max="70"
+                value={ratio}
+                onChange={(event) => setRatio(Number(event.target.value))}
+              />
+              <output aria-hidden="true">{ratio}%</output>
+            </label>
+          )}
         </div>
       </header>
       <dialog
@@ -475,7 +511,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
                     <div className={name === file ? "active" : ""} key={name}>
                       <button
                         aria-pressed={name === file}
-                        onClick={() => setFile(name)}
+                        onClick={() => open(name)}
                       >
                         <span
                           className="file-type"
@@ -497,7 +533,10 @@ export function Workspace({ free = false }: { free?: boolean }) {
                           onClick={() => {
                             const next = openFiles.filter((f) => f !== name);
                             setOpenFiles(next);
-                            if (file === name) setFile(next[0]);
+                            if (file === name) {
+                              setFile(next[0]);
+                              setEditorJump(null);
+                            }
                           }}
                         >
                           <X size={13} />
@@ -506,19 +545,6 @@ export function Workspace({ free = false }: { free?: boolean }) {
                     </div>
                   ))}
                 </div>
-                {showRightPane && (
-                  <label className="split-control" title="Ширина редактора">
-                    <ArrowLeftRight size={15} aria-hidden="true" />
-                    <input
-                      aria-label="Ширина редактора"
-                      type="range"
-                      min="35"
-                      max="70"
-                      value={ratio}
-                      onChange={(event) => setRatio(Number(event.target.value))}
-                    />
-                  </label>
-                )}
               </div>
               <div className="editor-content">
                 {showTree && (
@@ -565,6 +591,7 @@ export function Workspace({ free = false }: { free?: boolean }) {
                     file={(free ? "project/" : `lesson-${lesson.id}/`) + file}
                     value={value}
                     readOnly={readOnly || busy}
+                    jumpTo={editorJump?.file === file ? editorJump : undefined}
                     onChange={change}
                     onSizeLimit={() =>
                       setNotice("Размер файла ограничен 100 000 символов.")
@@ -646,7 +673,18 @@ export function Workspace({ free = false }: { free?: boolean }) {
                     codes={run.codes}
                     files={run.files}
                     onLog={(s) => setLogs((x) => [...x, s].slice(-100))}
-                    onError={(s) => setErrors((x) => [...x, s].slice(-30))}
+                    onError={(s) =>
+                      setErrors((previous) =>
+                        previous.includes(s) ? previous : [...previous, s].slice(-30),
+                      )
+                    }
+                    rawStage={
+                      free ? undefined : { file: stage, code: run.codes[lessonId] ?? "" }
+                    }
+                    onOpenSource={(source) => {
+                      open(source.file);
+                      setEditorJump(source);
+                    }}
                     onNavigate={navigatePreview}
                   />
                 </div>
@@ -756,9 +794,11 @@ export function Workspace({ free = false }: { free?: boolean }) {
           </div>
           <p className="workspace-notice" role="status">
             {notice ||
-              (starterCount > 0
-                ? "Код предыдущих этапов уже подключён"
-                : "Черновик сохраняется автоматически")}
+              (copiedMarkup
+                ? `В черновик попал ${copiedMarkup}. Открыта ${savedCode === undefined ? "заготовка задания" : "версия из проекта"}.`
+                : starterCount > 0
+                  ? "Код предыдущих этапов уже подключён"
+                  : "Черновик сохраняется автоматически")}
           </p>
           {!free && verified === signature && (
             <button className="primary" onClick={apply} disabled={busy}>

@@ -1,6 +1,6 @@
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
 import EditorWorker from "monaco-editor/editor/editor.worker.js?worker";
 import TsWorker from "monaco-editor/languages/features/typescript/ts.worker.js?worker";
@@ -58,6 +58,7 @@ export function CodeEditor({
   onSizeLimit,
   readOnly = false,
   ariaLabel = "Редактор кода " + file,
+  jumpTo,
 }: {
   file: string;
   value: string;
@@ -65,8 +66,21 @@ export function CodeEditor({
   onSizeLimit: () => void;
   readOnly?: boolean;
   ariaLabel?: string;
+  jumpTo?: { line: number; column: number };
 }) {
   const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+
+  function focusPosition(instance: monaco.editor.IStandaloneCodeEditor) {
+    if (!jumpTo) return;
+    const position = { lineNumber: jumpTo.line, column: jumpTo.column };
+    instance.setPosition(position);
+    instance.revealPositionInCenter(instance.getPosition() ?? position);
+    instance.focus();
+  }
+
+  useEffect(() => {
+    if (editor.current) focusPosition(editor.current);
+  }, [file, jumpTo]);
 
   return (
     <Editor
@@ -75,9 +89,19 @@ export function CodeEditor({
       value={value}
       onMount={(instance) => {
         editor.current = instance;
+        focusPosition(instance);
       }}
-      onChange={(next = "") => {
-        if (readOnly || next === value) return;
+      onChange={(next = "", event) => {
+        // A read-only tab may replace its model contents before this listener is updated.
+        if (
+          event.isFlush ||
+          readOnly ||
+          editor.current?.getModel()?.uri.toString() !==
+            monaco.Uri.parse(file).toString() ||
+          next === value
+        ) {
+          return;
+        }
         if (next.length > 100000) {
           editor.current?.setValue(value);
           onSizeLimit();

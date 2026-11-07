@@ -103,6 +103,9 @@ const pageFiles = Object.fromEntries(
   pages.map(({ id, name }) => [`${id}.html`, htmlFile(id, name)]),
 );
 
+// Each generated stage adds a comment and a wrapper before the student's code.
+export const stageCodeLineOffset = 2;
+
 export function projectFiles(
   codes: Record<string, string>,
   overrides: Record<string, string> = {},

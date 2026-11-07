@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { emptyProgress } from "../../src/engine/persistence";
 test("Простой маршрут от лекции через две задачи к практике", async ({
   page,
 }) => {
@@ -573,6 +574,9 @@ test("Ввод кода в Monaco, сохранение черновика и р
   await page.keyboard.insertText(
     "const title = document.querySelector('#hero-title');\nif(title) title.textContent='Мой фестиваль';\nconsole.log('Скрипт запущен');",
   );
+  for (const file of ["index.html", "styles.css", "stage-1.js"]) {
+    await page.getByRole("button", { name: file, exact: true }).click();
+  }
   await expect(page.getByText("Сохранено на устройстве").first()).toBeVisible();
   await page.getByRole("button", { name: "Запустить", exact: true }).click();
   await expect(
@@ -590,6 +594,56 @@ test("Ввод кода в Monaco, сохранение черновика и р
       .frameLocator('iframe[title="Предпросмотр NOVA"]')
       .locator("#hero-title"),
   ).toHaveText("Мой фестиваль");
+});
+test("Практика восстанавливает заготовку, открывает строку ошибки и сохраняет положение ползунка", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1081, height: 884 });
+  const html = '<!doctype html><h1 id="hero-title">NOVA</h1>';
+  await page.goto("#/settings");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByLabel("Импорт JSON прогресса").setInputFiles({
+    name: "progress.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({
+      ...emptyProgress(),
+      drafts: { 1: html },
+      files: { "index.html": html },
+    })),
+  });
+  await expect(page.getByText("Прогресс импортирован.")).toBeVisible();
+  await page.goto("#/workspace/1");
+  await expect(page.getByText(/В черновик попал index.html/)).toBeVisible();
+  await expect(
+    page.frameLocator('iframe[title="Предпросмотр NOVA"]').locator("#hero-title"),
+  ).toHaveText("NOVA");
+  const slider = page.getByRole("slider", { name: "Ширина редактора" });
+  await expect(slider).toBeVisible();
+  const track = await slider.boundingBox();
+  expect(track).not.toBeNull();
+  await slider.press("Home");
+  const editorPane = page.getByRole("region", { name: "Файлы и код" });
+  const narrow = (await editorPane.boundingBox())!.width;
+  await slider.press("End");
+  expect((await editorPane.boundingBox())!.width).toBeGreaterThan(narrow);
+  expect(await slider.boundingBox()).toEqual(track);
+
+  const jsEditor = page.getByRole("textbox", {
+    name: "Редактор кода lesson-1/scripts/stage-1.js",
+    exact: true,
+  });
+  await jsEditor.press("ControlOrMeta+A");
+  await page.keyboard.insertText("// Черновик\nconst broken = ;");
+  await page.getByRole("button", { name: "index.html", exact: true }).click();
+  await page.getByRole("button", { name: "Запустить", exact: true }).click();
+  await expect(page.locator(".preview-error")).toContainText("stage-1.js, строка 2");
+  await page.getByRole("button", { name: "Перейти к строке 2" }).click();
+  await expect(jsEditor).toBeFocused();
+  await expect(page.locator(".editor-pane .active-line-number")).toHaveText("2");
+  await page.getByRole("button", { name: /^Ошибки/ }).click();
+  await expect(page.locator(".console-content .error-text")).toHaveCount(1);
+  await page.getByRole("button", { name: "Проверить решение", exact: true }).click();
+  await expect(page.locator(".test-result.failed")).toContainText("stage-1.js, строка 2");
 });
 test("Самостоятельный образец NOVA", async ({ page }) => {
   await page.goto("nova/index.html");
