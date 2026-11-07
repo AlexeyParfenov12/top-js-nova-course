@@ -55,6 +55,7 @@ try {
   await page.getByText("Заготовки и эталоны", { exact: true }).click();
   await page.getByLabel("Заготовка задачи 1", { exact: true }).waitFor();
   await page
+    .locator("details.lecture-more")
     .getByRole("heading", { name: "Практика NOVA", exact: true })
     .waitFor();
   if (process.argv[12])
