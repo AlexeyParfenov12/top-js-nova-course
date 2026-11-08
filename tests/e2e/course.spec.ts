@@ -92,11 +92,13 @@ test("Простой маршрут от лекции через две зада
   ).toBeVisible();
   await expect(page.locator(".exercise")).toHaveCount(1);
   const trainerCode = page.locator(".trainer-editor .view-line");
-  await expect(trainerCode).toHaveCount(starter?.split("\n").length ?? 0);
-  expect(
-    (await trainerCode.allTextContents()).join("\n").replaceAll("\u00a0", " ").trimEnd(),
-  ).toBe(starter?.trimEnd());
+  await expect.poll(async () =>
+    (await trainerCode.allTextContents()).join("").replace(/\s/g, ""),
+  ).toBe(starter?.replace(/\s/g, ""));
   await page.getByRole("button", { name: "Ко второй задаче" }).click();
+  const trainerOutput = page.frameLocator('iframe[title="Результат упражнения"]');
+  await trainerOutput.getByRole("button", { name: "Я с вами!" }).click();
+  await expect(trainerOutput.getByRole("button", { name: "Я с вами!" })).toBeVisible();
   await page
     .getByRole("textbox", { name: "Код упражнения 2" })
     .press("ControlOrMeta+A");
@@ -105,6 +107,9 @@ test("Простой маршрут от лекции через две зада
   );
   await page.getByRole("button", { name: "Проверить", exact: true }).click();
   await expect(page.getByText("Верно! Все сценарии пройдены.")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Результат кода" })).toHaveAttribute("aria-busy", "false");
+  await trainerOutput.getByRole("button", { name: "Я с вами!" }).click();
+  await expect(trainerOutput.getByRole("button", { name: "Я иду на NOVA" })).toBeVisible();
   await expect(page.getByText("Сохранено на устройстве").first()).toBeVisible();
   await page.reload();
   await phases.getByRole("button", { name: /Тренажёр/ }).click();

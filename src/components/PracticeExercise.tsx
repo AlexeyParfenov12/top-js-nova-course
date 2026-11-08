@@ -7,6 +7,8 @@ import { checkInSandbox } from "../engine/execution";
 import { useAutoCheck } from "../engine/useAutoCheck";
 import { CodeEditor } from "./CodeEditor";
 import { SyntaxCode } from "./SyntaxCode";
+import { trainerExamples } from "../content/trainerExamples";
+import { TrainerOutput } from "./TrainerOutput";
 export default function PracticeExercise({
   exercise,
   lessonId,
@@ -68,28 +70,37 @@ export default function PracticeExercise({
           <li key={step}>{step}</li>
         ))}
       </ol>
-      <div className="mini-editor-caption">
-        <span>JavaScript</span>
-        <span>Подсказки при вводе · Ctrl+Пробел</span>
-      </div>
-      <div className="trainer-editor">
-        <CodeEditor
-          file={`trainer/lesson-${lessonId}/exercise-${exercise.slot}.js`}
-          readOnly={busy}
-          ariaLabel={`Код упражнения ${index + 1}`}
-          value={code}
-          onSizeLimit={() =>
-            setMessage("Размер файла ограничен 100 000 символов.")
-          }
-          onChange={(nextCode) => {
-            update((p) => ({
-              ...p,
-              exerciseDrafts: { ...p.exerciseDrafts, [key]: nextCode },
-              exercises: { ...p.exercises, [key]: false },
-            }));
-            setMessage("Проверим после паузы в наборе…");
-            autoCheck.schedule();
-          }}
+      <div className="trainer-workbench">
+        <div className="trainer-source">
+          <div className="mini-editor-caption">
+            <span>JavaScript</span>
+            <span>Подсказки при вводе · Ctrl+Пробел</span>
+          </div>
+          <div className="trainer-editor">
+            <CodeEditor
+              file={`trainer/lesson-${lessonId}/exercise-${exercise.slot}.js`}
+              readOnly={busy}
+              ariaLabel={`Код упражнения ${index + 1}`}
+              value={code}
+              onSizeLimit={() =>
+                setMessage("Размер файла ограничен 100 000 символов.")
+              }
+              onChange={(nextCode) => {
+                update((p) => ({
+                  ...p,
+                  exerciseDrafts: { ...p.exerciseDrafts, [key]: nextCode },
+                  exercises: { ...p.exercises, [key]: false },
+                }));
+                setMessage("Проверим после паузы в наборе…");
+                autoCheck.schedule();
+              }}
+            />
+          </div>
+        </div>
+        <TrainerOutput
+          key={key}
+          example={trainerExamples[lessonId][index]}
+          code={code}
         />
       </div>
       <div className="exercise-actions">
